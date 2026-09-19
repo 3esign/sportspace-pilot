@@ -1,0 +1,49 @@
+{
+  "schema": "sportspace-site-manifest/v0.19",
+  "generated_at": "2026-09-19T20:10:00.000Z",
+  "data_script": "data/sportspace-data.js",
+  "run_id": "method_run_002",
+  "source_hashes": {
+    "aoi": "85fb3770d70a2ec7ddd05e103ab7f1bd66e2ca8bd189e196f1f93fabe942a0aa",
+    "candidates": "39a9f7acca9852cdb4c381e47cc62af2ac8874b275551b22cd81a19eaac808f9",
+    "origins": "59aee51b6b39adbac151bf0bc9fca37f2d99af0dcc9e023559aa623455482a0e",
+    "run": "3cee7b9ced47575d237a7e239bc14c494193f9a703cfbb9fe561670941f95d57",
+    "summary": "12d98d2747b6fd56cef61898568aafc2d35e48f01f989ba889d90d910066e91c",
+    "registry": "c76d8a575c654626e97c5eab355182dc551e0a079c9f8877d7e9778762f31f3c",
+    "events": "83b971a2f84522c8f9cfdd656e970236934fce285bdcf46d6474e16e6140b011",
+    "evidence": "4d1759ee4a57d045328f8ab743c0e33c69d142742ab5f3ee53444c22354dd0e6"
+  },
+  "evidence": "e01-method-run-002-2026-09-19T20-10-00-000Z.json",
+  "counts": {
+    "origins": 20,
+    "candidates": 12,
+    "candidate_pairs": 240,
+    "routed_pairs": 228,
+    "snap_or_unrouted_pairs": 12,
+    "graph_nodes": 21327,
+    "graph_directed_edges": 43831,
+    "verification_sample_candidates": 5,
+    "verification_events": 15,
+    "documented_access_or_regime_candidates": 2,
+    "public_verified_candidates": 0,
+    "same_source_rejected_candidates": 1,
+    "unresolved_entity_match_candidates": 2
+  },
+  "public_claim_limit": "This evidence supports a public-source verification workflow and bounded documentary statuses only. It does not verify present physical access, entrance geometry, route quality, official boundaries, demand, planning priority or health effects.",
+  "attribution": [
+    "© OpenStreetMap contributors — ODbL 1.0",
+    "SportSpace E01: izvedeni tehnički i dokumentarni istraživački sloj."
+  ],
+  "hard_limits": [
+    "AOI je tehnički radni prozor, a ne službena granica.",
+    "Dve lokacije imaju javno dokumentovan režim, ali nijedna nije terenski potvrđena.",
+    "Origini su sintetičke tačke, a ne stanovništvo ili potražnja.",
+    "Linije prikazuju mrežni odnos, a ne snimljenu geometriju pešačke rute.",
+    "Rezultat ne meri zdravstveni ishod i ne određuje planski prioritet."
+  ],
+  "licence_files": [
+    "LICENSE",
+    "DATA-LICENSE.md",
+    "NOTICE.md"
+  ]
+}

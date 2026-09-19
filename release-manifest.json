@@ -1,0 +1,28 @@
+{
+  "schema": "sportspace-public-release/v0.19",
+  "generated_at": "2026-09-19T20:39:10.569Z",
+  "allowlist": [
+    "index.html",
+    "app.js",
+    "style.css",
+    "LICENSE",
+    "DATA-LICENSE.md",
+    "NOTICE.md",
+    "README.md",
+    "data/manifest.json",
+    "data/sportspace-data.js",
+    ".nojekyll"
+  ],
+  "hashes": {
+    "index.html": "911a6e9512038d924378247c42722b9894578f02b26602f9369621fad2ce2086",
+    "app.js": "761dab1ac6bdd908cca1f4c84ef14a022fa620e11f177a6cc12ea272aeff42ec",
+    "style.css": "1d2a0b55ee77bce5dc1d4f9730989e80e2ac39c08f33346425428a94b9030937",
+    "LICENSE": "623ce797c5ab0b78a219ce79764753bf4b89ea505c77ebccb3bc20408ca756de",
+    "DATA-LICENSE.md": "6631147568a6d4db27c09116104a8b1089909c7f3e995ed0c309ab796e744f93",
+    "NOTICE.md": "4b54aeb928a01830951de1c2d901950d611f6743cce38255fc548d65923b2453",
+    "README.md": "a6cfcf285b07e7bc10cdaafc5bc010cc4295c4f0c47b25908cf761218ecff633",
+    "data/manifest.json": "f0ca660f9e6be297e9b2aac810e43e99f6d236063f5e825ca8559c16166006dd",
+    "data/sportspace-data.js": "c73419247c62b4bdf976f1be3296e84a41489177b8c4acce6a9e05e2da689eb0",
+    ".nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

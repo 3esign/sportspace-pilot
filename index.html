@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="bs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SportSpace E01: interaktivni GIS pilot za inspekciju mrežnih rezultata, javnih izvora i granica dokaza.">
+  <title>SportSpace E01 · dokazna mapa</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#inspector">Preskoči na inspektor</a>
+  <div class="app-shell">
+    <header class="topbar" aria-label="Status pilota">
+      <div>
+        <p class="eyebrow">SportSpace E01 · Stup / Ilidža · istraživački pilot</p>
+        <h1>Grad se vidi kroz status dokaza.</h1>
+        <p class="lead">Mrežni rezultat, dokument i nepoznanica ostaju odvojeni dok ih pregledate na istoj mapi.</p>
+      </div>
+      <div class="release-card" aria-label="Izdanje podataka">
+        <span>method_run_002</span>
+        <strong>Dokumentarna provera · v0.19</strong>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="rail" aria-label="Kontrole i legenda">
+        <section class="panel compact">
+          <h2>Prikaz</h2>
+          <div class="mode-grid" role="group" aria-label="Slojevi mape">
+            <button class="mode-btn is-active" data-mode="overview">Pregled</button>
+            <button class="mode-btn" data-mode="nearest">Najbliže</button>
+            <button class="mode-btn" data-mode="unroutable">Nerutirano</button>
+            <button class="mode-btn" data-mode="verification">Provera</button>
+          </div>
+        </section>
+
+        <section class="panel compact">
+          <h2>Metodski status</h2>
+          <dl class="metric-list" id="metricList"></dl>
+        </section>
+
+        <section class="panel compact">
+          <h2>Legenda provere</h2>
+          <ul class="legend-list">
+            <li><span class="dot documented"></span> Dokumentovan režim</li>
+            <li><span class="dot rejected"></span> Isto poreklo odbačeno</li>
+            <li><span class="dot unresolved"></span> Tačna tačka nerazrešena</li>
+            <li><span class="dot unsampled"></span> Van uzorka</li>
+            <li><span class="dot origin"></span> Sintetički origin</li>
+            <li><span class="line-sample"></span> Mrežni odnos</li>
+          </ul>
+          <p class="microcopy">Linija nije snimljena ruta. Boja u prikazu Provera govori o dokazu, a ne o kvalitetu objekta.</p>
+        </section>
+      </aside>
+
+      <section class="map-stage" aria-label="Interaktivna dokazna mapa">
+        <canvas id="mapCanvas" width="1200" height="850" tabindex="0" aria-label="Mapa tehničkog prozora, sintetičkih origina i kandidata aktivnosti"></canvas>
+        <div class="map-hud" aria-live="polite">
+          <span id="hoverReadout">Izaberite tačku ili kandidata</span>
+          <button id="resetViewBtn" type="button">Reset pogleda</button>
+        </div>
+        <div class="status-strip" id="guardrailStrip"></div>
+      </section>
+
+      <aside class="inspector panel" id="inspector" aria-label="Inspektor izabranog elementa">
+        <div class="inspector-head">
+          <div>
+            <p class="eyebrow">Prostorna sonda</p>
+            <h2 id="selectionTitle">Izaberite element</h2>
+          </div>
+          <div class="status-pill" id="selectionStatus">bez izbora</div>
+        </div>
+
+        <div id="selectionBody" class="selection-body"></div>
+
+        <div class="compare-actions" role="group" aria-label="A/B poređenje">
+          <button id="pinA" type="button">Sačuvaj kao A</button>
+          <button id="pinB" type="button">Sačuvaj kao B</button>
+        </div>
+        <div class="compare-grid" id="compareGrid"></div>
+
+        <details class="evidence-box" open>
+          <summary>Kako je dobijeno</summary>
+          <div id="evidencePanel"></div>
+        </details>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <span>Eksperimentalni istraživački interfejs · bez zdravstvenog ili planskog zaključka</span>
+      <span><a href="DATA-LICENSE.md">Podaci i licence</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></span>
+    </footer>
+  </div>
+  <script src="data/sportspace-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
