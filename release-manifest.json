@@ -1,6 +1,6 @@
 {
   "schema": "sportspace-public-release/v0.30",
-  "generated_at": "2026-09-20T09:22:45.709Z",
+  "generated_at": "2026-09-20T10:21:42.052Z",
   "allowlist": [
     "index.html",
     "style.css",
@@ -8,6 +8,8 @@
     "environment.css",
     "layers.css",
     "composition.css",
+    "guide.css",
+    "guide.js",
     "app.js",
     "scene3d.js",
     "planning.js",
@@ -48,12 +50,14 @@
     "REPRODUCE.md"
   ],
   "hashes": {
-    "index.html": "f03831bb175ae8aacb532764dcebf6b40a716d0f7a7f2f6be6103e422bfd63ba",
+    "index.html": "c7307bae49a2f1c615f07ba7ae49ec3e610c752e3a2aa6645a9a910d7630ae2e",
     "style.css": "96f5e48529cc38798ec74ad0fc49db9bf601a28c80c87dd5a98be698c94a31f4",
     "planning.css": "7c4386f66c8d19859395a7f6afd0115babac09960511ead5f4d4d2099ffec608",
     "environment.css": "baab64d62501716be692c6fafb68c014695e9ab6de6bd968c4cdff6b27806b40",
     "layers.css": "920a0e56f6628e29fa12a4442fa90d2c6f9a1ee5afa406daa9c5b4befb9a723c",
     "composition.css": "ced218f26942bb937217e91c6cc9f9338fad843b47ce2bffdcb3d7bf764695bf",
+    "guide.css": "c85fcfab33f9bf56609c2a5443207657e2e434cbbe57759a73538e676e5af313",
+    "guide.js": "7ae23ab8d913ee80a1b9dbbcb4fbea4b3570fb8a1f17cca26e7636a123b3607e",
     "app.js": "89d7a2255239197cca349b4d18748762d43e8321d03c6d71341a300177ca8483",
     "scene3d.js": "f9df69a9584fdba70a4ef285908d2aaf08c2fd40d14132417fea1f4253e78500",
     "planning.js": "4af5dab9d99cfbccd7974e1465a960fc7835f8ea8e9bf74fb6ad7c926dbae183",
