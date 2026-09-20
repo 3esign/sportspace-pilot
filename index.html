@@ -3,96 +3,80 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="SportSpace E01: interaktivni GIS pilot za inspekciju mrežnih rezultata, javnih izvora i granica dokaza.">
-  <title>SportSpace E01 · dokazna mapa</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta name="theme-color" content="#e8eeeb">
+  <meta name="description" content="SportSpace — istraži uslove grada za svakodnevno kretanje. Prostori za aktivnost, mrežni pristup i jasna osnova svakog nalaza.">
+  <title>SportSpace — grad u pokretu</title>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="planning.css"><link rel="stylesheet" href="environment.css">
+<link rel="stylesheet" href="layers.css"><link rel="stylesheet" href="composition.css"></head>
 <body>
-  <a class="skip-link" href="#inspector">Preskoči na inspektor</a>
-  <div class="app-shell">
-    <header class="topbar" aria-label="Status pilota">
-      <div>
-        <p class="eyebrow">SportSpace E01 · Stup / Ilidža · istraživački pilot</p>
-        <h1>Grad se vidi kroz status dokaza.</h1>
-        <p class="lead">Mrežni rezultat, dokument i nepoznanica ostaju odvojeni dok ih pregledate na istoj mapi.</p>
+  <a class="skip-link" href="#placesList">Preskoči mapu na listu mesta</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="SportSpace, početni pogled">
+      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect width="36" height="36" rx="11" fill="currentColor"/><path d="M9 13h12l-6 10h12M9 23h6M21 13h6" stroke="#cbf2de" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="13" r="2" fill="white"/><circle cx="26" cy="23" r="2" fill="white"/></svg>
+      <span>Sport<span class="brand-light">Space</span><small>GRAD · KRETANJE · ZDRAVLJE</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Istraživanje grada">
+      <button type="button" class="nav-item active" data-view="places" aria-pressed="true"><span data-icon="map"></span>Mesta</button>
+      <button type="button" class="nav-item" data-view="access" aria-pressed="false"><span data-icon="route"></span>Pristup</button>
+      <button type="button" class="nav-item" id="planningBtn">Planiraj</button>
+      <button type="button" class="nav-item" id="findingsBtn"><span data-icon="chart"></span>Nalazi</button>
+    </nav>
+    <div class="header-context"><span class="location"><span data-icon="pin"></span>Stup / Ilidža</span><div class="language-switch" aria-label="Language / Jezik / Dil"><button type="button" data-language="bs">BS</button><button type="button" data-language="en">EN</button><button type="button" data-language="tr">TR</button></div><span class="pilot-tag">Istraživački pilot <span>24</span></span><button class="icon-button" id="aboutBtn" type="button" aria-label="O projektu"><span data-icon="info"></span></button></div>
+  </header>
+
+  <main class="workspace" id="workspace">
+    <div class="map-surface" id="mapSurface"><canvas id="spatialCanvas" aria-hidden="true" hidden></canvas><canvas id="mapCanvas" tabindex="0" aria-label="Mapa Stupa i Ilidže. Strelice pomeraju pogled, plus i minus menjaju razmeru. Mesta možete izabrati i iz tekstualne liste."></canvas></div>
+    <div class="map-loading" id="loading" role="status">Pripremamo vaš pogled na grad…</div>
+    <div class="mobile-intro"><p class="eyebrow">STUP / ILIDŽA</p><h1>Grad u pokretu.</h1><p>Mesta, vreme puta i scenariji pristupa.</p><div class="mobile-selects"><label><span class="sr-only">Vrsta aktivnosti</span><select id="mobileActivity"><option value="all">Sve aktivnosti</option><option value="playground">Igra</option><option value="pitch">Sport na terenu</option><option value="sports_centre">Sportski centri</option></select></label><label><span class="sr-only">Probno polazište</span><select id="mobileOrigin"></select></label></div></div>
+
+    <aside class="explore glass" aria-label="Izbor aktivnosti i mesta">
+      <div class="explore-heading"><p class="eyebrow">ISTRAŽI SVOJE OKRUŽENJE</p><button type="button" class="icon-button mobile-only" id="closeBrowse" aria-label="Zatvori listu"><span data-icon="close"></span></button></div>
+      <h1>Grad u pokretu<span>.</span></h1><p class="intro-copy">Pronađi mesta za aktivnost. Uporedi vreme puta. Ispitaj kako se izbor menja.</p>
+      <div class="activity-options" role="group" aria-label="Vrsta aktivnosti">
+        <button type="button" data-activity="all" class="selected" aria-pressed="true">Sve</button><button type="button" data-activity="playground" aria-pressed="false">Igra</button><button type="button" data-activity="pitch" aria-pressed="false">Tereni</button><button type="button" data-activity="sports_centre" aria-pressed="false">Centri</button>
       </div>
-      <div class="release-card" aria-label="Izdanje podataka">
-        <span>method_run_002</span>
-        <strong>Dokumentarna provera · v0.19</strong>
+      <label class="origin-label" for="originSelect"><span data-icon="origin"></span>Probno polazište <span class="hint" title="Sintetička tačka za ispitivanje modela, ne stvarna adresa ili stanovnik">?</span></label>
+      <select id="originSelect" class="origin-select"></select>
+      <p class="sampling-note">Probne tačke služe istraživanju pristupa.</p>
+      <div class="list-heading"><h2 id="listTitle">Mesta u okolini</h2><span id="placeCount"></span></div>
+
+      <div class="places-list" id="placesList" tabindex="-1" aria-label="Mesta za aktivnost"></div>
+      <p class="list-footnote" id="listFootnote">Redosled prema izračunatoj mrežnoj udaljenosti.</p>
+    </aside>
+
+    <div class="map-topline" aria-hidden="true"><span class="map-mark"></span><span>PROSTOR ZA AKTIVNOST</span><span class="map-topline-date">OSM · 19.09.2026.</span></div>
+    <div class="view-switch glass" role="group" aria-label="Dimenzije prikaza"><button type="button" data-dimension="2d" aria-pressed="true">2D</button><button type="button" data-dimension="3d" aria-pressed="false">3D</button><span class="view-divider"></span><button type="button" id="rotateLeft" aria-label="Rotiraj prostorni pogled ulevo" title="Rotiraj ulevo">↶</button><button type="button" id="rotateRight" aria-label="Rotiraj prostorni pogled udesno" title="Rotiraj udesno">↷</button></div>
+    <div class="env-layer-badge" id="environmentLayerBadge" hidden>Vegetacione klase · ESA WorldCover 2021<br>Tamno: drveće · svetlo: vegetacija · plavo: voda<br><span class="tree-symbol-note">3D stabla su simboli ćelija, bez izmerenih visina.</span></div>
+    <div class="height-note" id="heightNote" hidden>Visine: OSM / procena iz etaža · nepoznate ravno</div>
+
+    <aside class="detail-panel glass" id="detailPanel" aria-label="Rezultat izabranog mesta">
+      <button type="button" class="mobile-result" id="mobileResult" aria-expanded="false" aria-controls="detailContent"><span class="result-icon" data-icon="pin"></span><span><small>IZABRANO MESTO</small><strong id="mobileResultName">Izaberi mesto</strong></span><span class="mobile-result-value" id="mobileResultValue"></span><span data-icon="chevron"></span></button>
+      <div class="detail-content" id="detailContent">
+        <div class="detail-head"><p class="eyebrow">IZABRANO MESTO</p><button type="button" class="icon-button mobile-only" id="closeDetail" aria-label="Sažmi rezultat"><span data-icon="close"></span></button><span class="index-tag" id="selectionNumber"></span></div>
+        <h2 id="selectionTitle">Izaberi mesto</h2><p class="place-kind" id="selectionKind"></p>
+        <div class="measure-toggle" role="group" aria-label="Način merenja udaljenosti"><button type="button" data-measure="network" class="selected" aria-pressed="true"><span data-icon="route"></span>Kroz mrežu</button><button type="button" data-measure="air" aria-pressed="false"><span data-icon="line"></span>Vazdušno</button></div>
+        <div id="accessSummary" class="access-summary" hidden></div><div id="selectionBody"></div>
+        <div id="environmentQuick" class="environment-quick"></div><div class="evidence-summary" id="evidenceSummary"></div>
+        <details class="evidence-details" id="evidenceDetails"><summary>Detalji i izvori <span data-icon="arrow"></span></summary><div id="evidenceBody"></div></details>
       </div>
-    </header>
+    </aside>
 
-    <main class="workspace">
-      <aside class="rail" aria-label="Kontrole i legenda">
-        <section class="panel compact">
-          <h2>Prikaz</h2>
-          <div class="mode-grid" role="group" aria-label="Slojevi mape">
-            <button class="mode-btn is-active" data-mode="overview">Pregled</button>
-            <button class="mode-btn" data-mode="nearest">Najbliže</button>
-            <button class="mode-btn" data-mode="unroutable">Nerutirano</button>
-            <button class="mode-btn" data-mode="verification">Provera</button>
-          </div>
-        </section>
+    <div class="map-layers glass" role="group" aria-label="Kartografski prikaz"><button type="button" id="buildingsBtn" aria-pressed="true"><span data-icon="layers"></span>Zgrade</button><span class="control-divider"></span><button type="button" id="originsBtn" aria-pressed="false"><span data-icon="origin"></span>Polazišta</button><span class="control-divider"></span><button type="button" id="environmentBtn">Zelenilo · voda · vazduh</button></div>
+    <details class="map-help glass"><summary>Kako se kreće mapa?</summary><p>Povuci: pomeranje · točkić ili dva prsta: zum.<br>3D: desni taster + povlačenje ili Shift + povlačenje rotira i naginje. Dva prsta mogu i da rotiraju.<br>Klik na broj: detalji. Tastatura: strelice, +/−, Home; Q/E rotacija, R/F nagib.</p></details><div class="map-controls glass" aria-label="Kontrole mape"><button type="button" class="icon-button compass" id="northBtn" aria-label="Vrati početni kadar">N<span>↑</span></button><span class="control-divider"></span><button type="button" class="icon-button" id="zoomIn" aria-label="Uvećaj mapu"><span data-icon="plus"></span></button><button type="button" class="icon-button" id="zoomOut" aria-label="Umanji mapu"><span data-icon="minus"></span></button><button type="button" class="icon-button" id="fitBtn" aria-label="Prikaži celo područje"><span data-icon="fit"></span></button></div>
+    <div class="map-key"><span class="legend-route"></span><span id="mapKeyLabel">Modelovana putanja</span><span class="key-separator">·</span><span class="legend-snap"></span>Neproverena veza</div>
+    <div class="map-scale" id="mapScale" aria-label="Razmera mape"></div>
+    <section class="finding-strip glass" aria-label="Istraživački nalaz"><div class="finding-index">01<span>/ 03</span></div><div class="finding-title"><p class="eyebrow">ŠTA NAM PODACI OTKRIVAJU</p><h2>Blizu na mapi.<br>Drugačije kroz grad.</h2></div><div class="finding-number"><strong>5<span>/19</span></strong><span>polazišta menja<br>najbliže mesto</span></div><p class="finding-copy">Izbor vazdušne ili mrežne udaljenosti menja odgovor u ovom probnom modelu.</p><button type="button" id="storyBtn" class="story-button">Istraži razliku <span data-icon="arrow"></span></button></section>
+    <footer class="map-footer"><span>Model za istraživanje · bez terenske potvrde</span><span><button type="button" id="methodologyBtn">Metodologija</button><span> · </span><a href="https://github.com/3esign/sportspace-pilot" target="_blank" rel="noopener" title="Javni repozitorijum za objavljenu v0.30 verziju">GitHub</a><span> · </span><a href="DATA-LICENSE.md">Podaci i licence</a><span> · ESA WorldCover 2021</span><span> · </span><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></span></footer>
+    <div class="map-tooltip" id="mapTooltip" hidden></div>
+    <p class="sr-only" id="liveAnnouncement" role="status" aria-live="polite"></p>
+  </main>
 
-        <section class="panel compact">
-          <h2>Metodski status</h2>
-          <dl class="metric-list" id="metricList"></dl>
-        </section>
+  <dialog id="findingsDialog" class="modal"><div class="modal-top"><span class="eyebrow">SPORTSPACE / ISTRAŽIVANJE</span><button type="button" class="icon-button" data-close="findingsDialog" aria-label="Zatvori nalaze"><span data-icon="close"></span></button></div><h2>Šta za sada znamo.</h2><p class="modal-lead">Mali, proverljiv pilot o mogućnostima kretanja kroz grad.</p><div id="findingsContent"></div><div class="research-chain"><span>Prostor</span><span>→</span><span>Mogućnosti kretanja</span><span>→</span><span class="future">Ponašanje</span><span>→</span><span class="future">Zdravlje</span></div><p class="modal-note">Sada ispitujemo prostor i model pristupa. Stvarno korišćenje prostora i zdravstveni efekti još nisu mereni.</p></dialog>
+  <dialog id="aboutDialog" class="modal"><div class="modal-top"><span class="eyebrow">O PROJEKTU</span><button type="button" class="icon-button" data-close="aboutDialog" aria-label="Zatvori opis projekta"><span data-icon="close"></span></button></div><h2>Grad kao prostor<br>svakodnevnog kretanja.</h2><p class="modal-lead">SportSpace povezuje mesta za aktivnost, puteve do njih i osnovu svakog nalaza. Cilj je da razumemo šta grad omogućava i gde postoji prostor za promenu.</p><button type="button" id="methodologyFromAbout" class="env-action">Kako radi: metodologija, matematički modeli i literatura →</button><div class="about-grid"><section><h3>Ovaj pilot</h3><p>12 OSM kandidata, 20 sintetičkih polazišta i jedan mrežni model za Stup / Ilidžu. Obuhvat je tehnički prozor, a ne službena granica naselja.</p></section><section><h3>Kako čitati mapu</h3><p>Zgrade, ulice, vodotokovi i zelene površine daju kartografski kontekst. Nisu merenje kvaliteta sredine. U 3D prikazu visine potiču iz OSM-a ili procene od 3 m po upisanoj etaži. Nepoznate visine ostaju ravne. Vreme hoda je modelovano brzinom 1,2 m/s.</p></section><section><h3>Šta još proveravamo</h3><p>Stvarne ulaze, režime pristupa i kvalitet pešačke mreže. Dokumentovan režim ne znači da je mesto besplatno ili svima dostupno.</p></section><section><h3>Istraživački tim</h3><p>doc. dr. Semir Poturak<br>prof. dr. Amra Tuzović</p><p class="author-affiliation">University of Travnik,<br>Faculty of Technical Sciences<br><a href="https://fts.edu.ba/" target="_blank" rel="noopener">fts.edu.ba ↗</a></p></section></div><p class="modal-note">Interfejs v0.30 · metodski rezultat method_run_002 · izvori 19.09.2026. <a href="NOTICE.md">Napomena o istraživanju</a></p></dialog>
+  <dialog id="planningDialog" class="modal planning-modal" aria-labelledby="planTitle"><div class="modal-top"><span class="eyebrow">OD PITANJA DO ODLUKE</span><button type="button" class="icon-button" id="closePlanning" aria-label="Zatvori planiranje">✕</button></div><div class="plan-modes" role="group" aria-label="Svrha istraživanja"><button type="button" data-plan-mode="daily" aria-pressed="true">Moja aktivnost</button><button type="button" data-plan-mode="city" aria-pressed="false">Scenario za grad</button><button type="button" id="environmentFromPlan">Zelenilo i vazduh ↗</button></div><h2 id="planTitle"></h2><p class="modal-lead" id="planLead"></p><div class="plan-layout"><div class="plan-controls"><label>Aktivnost<select id="planActivity"><option value="playground">Igra / igrališta</option><option value="pitch">Sport na terenu</option><option value="sports_centre">Sportski centri</option><option value="all">Sve aktivnosti</option></select></label><label id="planOriginLabel">Polazište<select id="planOrigin"></select></label><label id="planExcludedLabel" hidden>Izuzmi jedno mesto<select id="planExcluded"></select></label><label class="plan-time">Vreme puta · jedan smer<output id="planMinutesValue" for="planMinutes">15 min</output><input id="planMinutes" type="range" min="5" max="45" step="5" value="15"></label><p id="planScope"></p><p class="plan-status"><strong>Model, bez podataka uživo</strong>OSM snimak 19.09.2026. Rezultati se menjaju sa tvojim izborom. Današnja otvorenost nije poznata.</p></div><section id="planResults" aria-label="Rezultat planiranja"></section></div><div class="plan-bottom"><p>20 sintetičkih polazišta · nisu stanovnici ili adrese.<br>Scenario menja skup odredišta, ne mrežu, ponašanje ili zdravlje.</p><button type="button" class="plan-export" id="planExport" hidden>Izvezi scenario · CSV ↓</button></div><p id="planAnnouncement" class="sr-only" role="status" aria-live="polite"></p></dialog>
+  <dialog id="environmentDialog" class="modal environment-dialog" aria-labelledby="environmentTitle"><div class="modal-top"><span class="eyebrow">SPORTSPACE / DOSTUPNOST + OKRUŽENJE</span><button id="closeEnvironment" class="icon-button" type="button" aria-label="Zatvori okruženje">✕</button></div><h2 id="environmentTitle">Do aktivnosti, kroz zeleniji grad.</h2><p class="env-intro">Uporedi vreme puta i vegetaciono okruženje, pa istraži sezonski profil vazduha. Satelitski pokrivač i regionalni vazduh su iz 2021; mesta i mreža iz OSM snimka 2026. Ovo je povezivanje različitih vremenskih preseka.</p><div class="env-tabs" role="group" aria-label="Pokazatelji okruženja"><button type="button" data-env-tab="green" aria-pressed="true">Zelenilo i put</button><button type="button" data-env-tab="air" aria-pressed="false">Vazduh kroz godinu</button><button type="button" data-env-tab="models" aria-pressed="false">Modeli dostupnosti</button></div><div id="envGreenPanel" class="env-grid"><div class="env-controls"><label>Profil mesta<select id="envCandidate"></select></label><label>Vrsta aktivnosti<select id="envActivity"><option value="playground">Igra / igrališta</option><option value="pitch">Sportski tereni</option><option value="sports_centre">Sportski centri</option></select></label><label>Okolina mesta<select id="envRadius"><option value="100">100 metara</option><option value="300" selected>300 metara</option><option value="500">500 metara</option></select></label><button type="button" class="env-action" id="environmentLayerBtn" aria-pressed="false">Prikaži vegetaciju na mapi</button><button type="button" class="env-action" id="envShowMap">Otvori mesto i sloj na 2D/3D mapi →</button><h3>ISPITAJ ZAJEDNO</h3><label>Vreme puta · jedan smer<select id="envMinutes"><option value="10">Do 10 minuta</option><option value="15" selected>Do 15 minuta</option><option value="30">Do 30 minuta</option><option value="45">Do 45 minuta</option></select></label><label>Najmanje vegetacije<output id="envGreenValue" for="envGreen">20%</output><input type="range" id="envGreen" min="0" max="80" step="5" value="20"></label><p class="env-note" id="envOriginNote"></p></div><section class="env-result"><p class="eyebrow">OKRUŽENJE ODREDIŠTA</p><h3 id="envPlaceName"></h3><div class="env-metrics" id="envMetrics"></div><div id="envLandcover"></div><p class="env-note" id="envPlaceNote"></p><div id="envScatter"></div><div class="env-compare" id="envCompare"></div><p class="env-note" id="envRouteSensitivity"></p><div class="env-scenario" id="envScenario"></div></section></div><section id="envAirPanel" hidden><div class="env-regional"><strong>Isti regionalni kontekst za sva mesta.</strong> Mreža CAMS 0,1° (približno 11 km sever–jug), izabrana ćelija 43,8° N / 18,3° E. Ovaj prikaz ne razlikuje vazduh između susednih ulica ili igrališta. Istorijski model, nije stanica ni podatak uživo.</div><div class="env-air-controls" style="margin-top:20px"><label>Parametar<select id="envPollutant"><option value="pm2_5">PM₂.₅</option><option value="pm10">PM₁₀</option><option value="nitrogen_dioxide">NO₂</option><option value="ozone">O₃</option></select></label><label>Mesec za poređenje<select id="envMonth"><option value="1">Januar</option><option value="2">Februar</option><option value="3">Mart</option><option value="4">April</option><option value="5">Maj</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Avgust</option><option value="9">Septembar</option><option value="10">Oktobar</option><option value="11">Novembar</option><option value="12">Decembar</option></select></label></div><div class="env-metrics" id="envAirMetrics"></div><div id="envAirChart" class="env-air-chart"></div><p class="env-note" id="envAirReading"></p><div id="envHourly"></div></section><section id="envModelPanel" hidden><p class="env-regional">Tri poznate porodice modela, isti podaci. Svaki pogled odgovara na drugo pitanje; promena modela nije nova činjenica o gradu.</p><div class="model-controls"><label>Model<select id="accessModel"><option value="nearest">Najbliže mesto · min</option><option value="cumulative">Broj mogućnosti · prag</option><option value="potential">Potencijal · opadanje sa udaljenošću</option></select></label><label>Aktivnost<select id="modelActivity"><option value="playground">Igrališta</option><option value="pitch">Sportski tereni</option><option value="sports_centre">Sportski centri</option></select></label><label id="modelThresholdLabel" hidden>Prag T<select id="modelThreshold"><option value="10">10 min</option><option value="15" selected>15 min</option><option value="30">30 min</option><option value="45">45 min</option></select></label><label id="modelHalfLifeLabel" hidden>Poluvreme h<select id="modelHalfLife"><option value="10">10 min</option><option value="15" selected>15 min</option><option value="30">30 min</option></select></label></div><div id="modelDescription" class="model-description"></div><p id="modelSummary" class="env-note"></p><div id="modelGrid" class="model-grid"></div><p id="modelExplanation" class="env-note"></p><p class="env-note">Pločice su svih 20 sintetičkih polazišta, a ne naselja ili stanovnici. Dužina trake prikazuje veličinu vrednosti, ne univerzalnu ocenu kvaliteta. Klik otvara polazište na mapi. Regionalni vazduh se ne koristi za rangiranje ovih tačaka.</p></section><div class="env-footer"><p>© <a href="https://esa-worldcover.org/en/data-access" target="_blank" rel="noopener">ESA WorldCover project 2021</a> / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium. Vazduh: <a href="https://ads.atmosphere.copernicus.eu/datasets/cams-europe-air-quality-reanalyses?tab=overview" target="_blank" rel="noopener">CAMS ENSEMBLE</a> preko <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Podaci CC BY 4.0; prostorna obrada i agregacija: SportSpace. <button type="button" id="methodologyFromEnv" class="text-link">Metod, modeli i literatura</button>.</p><button type="button" id="envExport">Izvezi poređenje · CSV ↓</button></div></dialog>
+<dialog id="methodologyDialog" class="modal methodology-dialog" aria-labelledby="methodologyTitle"><div class="modal-top"><span class="eyebrow">SPORTSPACE / METODOLOGIJA</span><button type="button" class="icon-button" id="closeMethodology" aria-label="Zatvori metodologiju">✕</button></div><h2 id="methodologyTitle">Od javnih podataka<br>do razumljivog poređenja.</h2><p class="modal-lead">Istražujemo prostorne mogućnosti za aktivnost: koliko su mesta dostupna kroz modelovanu mrežu, kakvo im je vegetaciono i vodeno okruženje i kako se regionalni vazduh menja kroz godinu.</p><div class="method-chain"><span>Izvori</span>→<span>Prostorni račun</span>→<span>Poređenje modela</span>→<span>Tumačenje</span></div><section><h3>1. Podaci i vremenski preseci</h3><p><strong>OSM, 19.09.2026:</strong> 12 kandidata za aktivnost, 20 sintetičkih polazišta i 240 parova. Postojeći model daje 228 putanja; jedno polazište nema vezu. Polazišta nisu stanovnici ili stvarne korisničke adrese.</p><p><strong>ESA WorldCover 2021 v200:</strong> klasifikovan pokrivač zemljišta, nominalno 10 m. Obrađen lokalni izvod: drveće, ostale vegetacione klase, poljoprivreda, izgrađene i vodene površine. Zgrade i vodotokovi iz OSM-a daju dodatni kartografski kontekst.</p><p><strong>CAMS preko Open-Meteo, 2021:</strong> 8.760 satnih vrednosti za svaki od PM₂.₅, PM₁₀, NO₂ i O₃, ćelija 43,8° N / 18,3° E, mreža 0,1°. To je istorijski regionalni model, ne lokalna stanica. Okruženje iz 2021. povezujemo sa mrežom iz 2026; ne predstavljamo ih kao istovremeno posmatran grad.</p></section><section><h3>2. Put i vreme</h3><p>Najkraći put traži se u postojećem grafu. Vreme je dužina puta podeljena pretpostavljenom brzinom 1,2 m/s. Isprekidane spojnice do grafa ostaju posebno označene. Nepronađena veza nije dokaz stvarne neprohodnosti.</p><p>Prikaz putanje je model, a animacija otkriva njenu geometriju. Nisu snimljeno kretanje ljudi ili potvrđena navigacija.</p></section><section><h3>3. Tri modela dostupnosti</h3><p><code>Mᵢ = minⱼ tᵢⱼ</code> — vreme do najbližeg odredišta iste aktivnosti.</p><p><code>Cᵢ(T) = Σⱼ 1(tᵢⱼ ≤ T)</code> — broj odredišta unutar vremena T. Jednako udaljena mesta tretira jednako, ali ima oštar prag.</p><p><code>Pᵢ(h) = Σⱼ 2^(−tᵢⱼ / h)</code> — potencijal dostupnosti sa postepenim opadanjem. Na h minuta odredište doprinosi 0,5. Svako mesto ima težinu 1; kapacitet nije poznat. Parametar h je izbor scenarija, ne izmeren obrazac ponašanja.</p><p>Ovo su primene poznatih porodica modela, ne novi zdravstveni modeli. Osnova: <a href="https://doi.org/10.1787/c62be65d-en" target="_blank" rel="noopener">Geurs (2018), Transport Planning With Accessibility Indices in the Netherlands</a>.</p></section><section><h3>4. Vegetacija i voda</h3><p>U krugovima radijusa 100, 300 i 500 m oko tačke mesta računamo udeo validne površine piksela određene klase. Piksel pripada krugu prema svom centru; površina je ponderisana geografskom širinom. Vegetacija obuhvata klase 10, 20, 30, 90, 95 i 100; poljoprivreda (40) je odvojena. Trajna voda je klasa 80.</p><p>Drveće znači površinu klasifikovanu u klasu drveća, ne gustinu krošnji. Uz put računamo udeo dužine sa vegetacionim pikselom unutar 25 m, i 50 m za poređenje osetljivosti. Uzorkovanje je na najviše 10 m; spojnice do grafa su isključene.</p><p>Prisustvo vode ne dokazuje pristup obali, kvalitet vode ili kupanje. Vegetacija ne dokazuje hlad, vidljivost ili slobodan ulaz. Osnova klasifikacije: <a href="https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/docs/WorldCover_PUM_V2.0.pdf" target="_blank" rel="noopener">WorldCover Product User Manual v2.0</a>.</p></section><section><h3>5. Kompromisi i scenariji</h3><p>Pareto izbor nema drugu prikazanu opciju iste aktivnosti koja ima kraći ili jednak put i više ili jednako vegetacije, uz bar jednu strogu prednost. To poredi dva kriterijuma bez zbirnog skora. Osnova: <a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" rel="noopener">Boyd i Vandenberghe (2004), §4.7</a>.</p><p>Izuzimanje mesta menja skup odredišta, ne uličnu mrežu. Zajednički uslov vremena i udela vegetacije pokazuje osetljivost na izabrane pragove. Rezultati 20 probnih polazišta nisu procenti stanovništva. Ne optimizujemo alternativne trase do istog odredišta.</p></section><section><h3>6. Vazduh i 3D prikaz</h3><p>Vazduh agregiramo iz satnih podataka u mesečne, godišnje i prosečne satne profile. Jedinica je µg/m³, vreme UTC. Zimski meseci znače januar, februar i decembar iste 2021. godine. Ista regionalna ćelija važi za sva mesta; ne koristimo je da lokalno rangiramo igrališta.</p><p>3D visine zgrada dolaze iz OSM-a ili procene po etažama. Stilizovana stabla predstavljaju uzorkovane satelitske ćelije drveća: njihov broj, oblik i simbolična visina nisu inventar stabala niti model senke. Sadržajni račun koristi raster, ne nacrtane modele.</p></section><section><h3>7. Ponovljivost, licence i granice</h3><p>Računi imaju skripte, originalne ulaze, hashove i provere. CSV izvoz beleži parametre i godine. WorldCover i Open-Meteo/CAMS podaci koriste se uz CC BY 4.0 atribuciju; OSM izvedena baza zadržava ODbL. Besplatna API usluga Open-Meteo ima posebne nekomercijalne uslove. Stari stanični prepis Ilidža 2024 nije deo ovog novog javnog skupa zbog nerazrešenih prava redistribucije.</p><p>Rad koristi postojeće sekundarne podatke. Ne zahteva nova merenja; terenska i korisnička istraživanja mogu biti budući rad. Prostorni pokazatelji ne predstavljaju izmerene zdravstvene efekte. Širi okvir: <a href="https://www.who.int/europe/publications/i/item/WHO-EURO-2016-3352-43111-60341" target="_blank" rel="noopener">WHO (2016), Urban green spaces and health</a>.</p><p><a href="ENVIRONMENT-METHODS.md">Detaljan postupak i izvori</a> · <a href="DATA-LICENSE.md">Licence</a> · <a href="https://github.com/3esign/sportspace-pilot" target="_blank" rel="noopener">GitHub repozitorijum ↗</a></p><p class="env-note">Javni interfejs v0.30. Repozitorijum i stranica prikazuju ovo izdanje.</p></section><p class="modal-note">doc. dr. Semir Poturak · prof. dr. Amra Tuzović<br>University of Travnik, Faculty of Technical Sciences</p></dialog>
 
-        <section class="panel compact">
-          <h2>Legenda provere</h2>
-          <ul class="legend-list">
-            <li><span class="dot documented"></span> Dokumentovan režim</li>
-            <li><span class="dot rejected"></span> Isto poreklo odbačeno</li>
-            <li><span class="dot unresolved"></span> Tačna tačka nerazrešena</li>
-            <li><span class="dot unsampled"></span> Van uzorka</li>
-            <li><span class="dot origin"></span> Sintetički origin</li>
-            <li><span class="line-sample"></span> Mrežni odnos</li>
-          </ul>
-          <p class="microcopy">Linija nije snimljena ruta. Boja u prikazu Provera govori o dokazu, a ne o kvalitetu objekta.</p>
-        </section>
-      </aside>
-
-      <section class="map-stage" aria-label="Interaktivna dokazna mapa">
-        <canvas id="mapCanvas" width="1200" height="850" tabindex="0" aria-label="Mapa tehničkog prozora, sintetičkih origina i kandidata aktivnosti"></canvas>
-        <div class="map-hud" aria-live="polite">
-          <span id="hoverReadout">Izaberite tačku ili kandidata</span>
-          <button id="resetViewBtn" type="button">Reset pogleda</button>
-        </div>
-        <div class="status-strip" id="guardrailStrip"></div>
-      </section>
-
-      <aside class="inspector panel" id="inspector" aria-label="Inspektor izabranog elementa">
-        <div class="inspector-head">
-          <div>
-            <p class="eyebrow">Prostorna sonda</p>
-            <h2 id="selectionTitle">Izaberite element</h2>
-          </div>
-          <div class="status-pill" id="selectionStatus">bez izbora</div>
-        </div>
-
-        <div id="selectionBody" class="selection-body"></div>
-
-        <div class="compare-actions" role="group" aria-label="A/B poređenje">
-          <button id="pinA" type="button">Sačuvaj kao A</button>
-          <button id="pinB" type="button">Sačuvaj kao B</button>
-        </div>
-        <div class="compare-grid" id="compareGrid"></div>
-
-        <details class="evidence-box" open>
-          <summary>Kako je dobijeno</summary>
-          <div id="evidencePanel"></div>
-        </details>
-      </aside>
-    </main>
-
-    <footer class="site-footer">
-      <span>Istraživački tim: Semir Poturak · prof. dr. Amra Tuzović</span>
-      <span>Eksperimentalni interfejs · bez zdravstvenog ili planskog zaključka</span>
-      <span><a href="DATA-LICENSE.md">Podaci i licence</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></span>
-    </footer>
-  </div>
-  <script src="data/sportspace-data.js"></script>
-  <script src="app.js"></script>
-</body>
+  <script src="data/sportspace-data.js"></script><script src="data/display-data.js"></script><script src="scene3d.js"></script><script src="data/environment-data.js"></script><script src="i18n-data.js"></script><script src="i18n.js"></script><script src="app.js"></script><script src="planning.js"></script><script src="access-models.js"></script><script src="environment.js"></script>
+<script src="data/green-context.js"></script><script src="data/green-candidates.js"></script><script src="layers.js"></script><script src="method24.js"></script><script src="origin-profile.js"></script><script src="data/research-data.js"></script><script src="composition.js"></script><script src="research.js"></script></body>
 </html>

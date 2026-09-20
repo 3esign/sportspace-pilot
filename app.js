@@ -1,292 +1,213 @@
 (() => {
   'use strict';
-  const data = window.SPORTSPACE_DATA;
-  if (!data) throw new Error('SPORTSPACE_DATA missing');
-
-  const $ = selector => document.querySelector(selector);
-  const canvas = $('#mapCanvas');
-  const ctx = canvas.getContext('2d');
-  const ui = {
-    metrics: $('#metricList'), hover: $('#hoverReadout'), guardrails: $('#guardrailStrip'),
-    title: $('#selectionTitle'), status: $('#selectionStatus'), body: $('#selectionBody'),
-    evidence: $('#evidencePanel'), compare: $('#compareGrid')
+  const $ = s => document.querySelector(s);
+  const icons = {
+    map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2V5Z"/><path d="M9 3v16M15 5v16"/>',
+    route:'<circle cx="5" cy="18" r="2"/><circle cx="19" cy="5" r="2"/><path d="M7 18h8a4 4 0 0 0 0-8H9a3 3 0 0 1 0-6h8"/>',
+    chart:'<path d="M4 3v17h17M8 15l4-5 4 2 4-7"/>',
+    pin:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.1"/>',
+    origin:'<circle cx="12" cy="12" r="6"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+    close:'<path d="m6 6 12 12M18 6 6 18"/>',
+    arrow:'<path d="M4 12h15M14 6l6 6-6 6"/>',
+    chevron:'<path d="m6 9 6 6 6-6"/>',
+    line:'<circle cx="5" cy="18" r="2"/><circle cx="19" cy="5" r="2"/><path stroke-dasharray="2 3" d="m7 16 10-9"/>',
+    layers:'<path d="m12 3 10 5-10 5L2 8l10-5ZM2 12l10 5 10-5M2 16l10 5 10-5"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>', minus:'<path d="M5 12h14"/>',
+    fit:'<path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/><circle cx="12" cy="12" r="3"/>',
+    play:'<path d="m8 4 12 8-12 8V4Z"/>',pause:'<path d="M8 5v14M16 5v14"/>',
+    check:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    playground:'<path d="m4 20 5-16h6l5 16M7 11h10M12 4v9M9 14h6"/>',
+    pitch:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/><circle cx="12" cy="12" r="3"/>',
+    sports_centre:'<path d="M7 8v8M4 10v4M17 8v8M20 10v4M7 12h10"/>'
   };
-  const state = { mode: 'overview', selected: null, pinA: null, pinB: null, pixelRatio: 1 };
-  const aoi = data.aoi.features[0];
-  const bbox = aoi.properties.bbox_wsen;
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[char]);
-  const fmt = (value, unit = '') => value === null || value === undefined ? 'n/a' : `${value}${unit}`;
-  const safeUrl = value => /^https:\/\//.test(value || '') ? value : '#';
-  const labelStatus = status => ({
-    documented_access_or_regime_not_field_verified: 'dokumentovan režim',
-    same_source_confirmation_rejected: 'isto poreklo odbačeno',
-    independent_locality_document_exact_feature_unresolved: 'tačna tačka nerazrešena',
-    not_sampled: 'van uzorka'
-  })[status] || status || 'nepoznato';
-  const accessLabel = value => value === 'public_documented'
-    ? 'dokumentovan režim, bez terenske potvrde'
-    : 'nepoznat režim';
-  const statusClass = status => status?.startsWith('documented_') ? 'documented' : status?.startsWith('same_source_') ? 'rejected' : status?.includes('unresolved') ? 'unresolved' : 'unsampled';
+  const icon = key => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[key] || icons.pin}</svg>`;
+  document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML = icon(el.dataset.icon));
+  const data = window.SPORTSPACE_DATA, display = window.SPORTSPACE_DISPLAY;
+  if (!data || !display) { $('#loading').innerHTML = 'Podaci nisu učitani. <button type="button" onclick="location.reload()">Pokušaj ponovo</button>'; return; }
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const number = n => Number(n).toLocaleString(window.SportSpaceI18n.locale(), {maximumFractionDigits:1});
+  const distance = n => n == null ? 'Nema veze' : n >= 1000 ? `${number(n / 1000)} km` : `${Math.round(n)} m`;
+  const typeName = {playground:'Igralište',pitch:'Sportski teren',sports_centre:'Sportski centar'};
+  const mobile = () => matchMedia('(max-width: 1000px)').matches;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const candidates = data.candidates.features.map((f,i) => ({id:f.properties.feature_id,point:f.geometry.coordinates,props:f.properties,index:i+1,name:f.properties.name || `${typeName[f.properties.activity_class] || 'Mesto za aktivnost'} ${String(i+1).padStart(2,'0')}`}));
+  const origins = data.origins.features.map((f,i) => ({id:f.properties.origin_id,point:f.geometry.coordinates,index:i+1}));
+  const byId = new Map(candidates.map(c => [c.id,c]));
+  const rowIndex = new Map(data.run.rows.map(r=>[`${r.origin_id}/${r.feature_id}`,r]));
+  const sources = new Map(data.verification.sources.map(s=>[s.source_id,s]));
+  const state = {activity:'all',origin:'grid-r02-c02',selected:null,measure:'network',view:'places',autoNearest:true,buildings:true,origins:false,dimension:'2d',environment:false};
+  const workspace = $('#workspace'), canvas = $('#mapCanvas'), ctx = canvas.getContext('2d');
+  if (!ctx) { $('#loading').textContent='Mapa nije dostupna u ovom pregledaču. Koristite listu mesta.'; }
+  const base = document.createElement('canvas'), baseCtx=base.getContext('2d');
+  let width=1,height=1,dpr=1,baseDirty=true,drawFrame=0,animationFrame=0,progress=1,animationStart=0,pausedAt=0,scene=null,spatialFrame=0,pitch=0,bearing=0;
+  const camera={x:0,y:0,scale:.15,initialScale:.15};
+  const origin = () => origins.find(o=>o.id===state.origin);
+  const row = c => rowIndex.get(`${state.origin}/${c.id}`);
+  const filtered = () => candidates.filter(c=>state.activity==='all'||c.props.activity_class===state.activity);
+  const ranked = (measure=state.measure) => filtered().map(c=>({c,r:row(c)})).sort((a,b)=>((measure==='network'?a.r.network_distance_m:a.r.air_distance_m)??Infinity)-((measure==='network'?b.r.network_distance_m:b.r.air_distance_m)??Infinity));
+  function nearest(measure) {return ranked(measure).find(x=>measure==='air'||x.r.network_distance_m!==null)?.c || null;}
+  function chooseNearest(){state.selected=(nearest(state.measure)||nearest('air'))?.id || null;}
+  chooseNearest();
 
-  const candidates = data.candidates.features.map(feature => ({
-    type: 'candidate', id: feature.properties.feature_id,
-    label: feature.properties.name || feature.properties.feature_id,
-    lon: feature.geometry.coordinates[0], lat: feature.geometry.coordinates[1], props: feature.properties
-  }));
-  const origins = data.origins.features.map(feature => ({
-    type: 'origin', id: feature.properties.origin_id, label: feature.properties.origin_id,
-    lon: feature.geometry.coordinates[0], lat: feature.geometry.coordinates[1], props: feature.properties
-  }));
-  const candidateById = new Map(candidates.map(item => [item.id, item]));
-  const nearestByOrigin = new Map(data.run.nearest_by_origin.map(item => [item.origin_id, item]));
-  const rowsByOrigin = new Map();
-  const rowsByCandidate = new Map();
-  for (const row of data.run.rows) {
-    if (!rowsByOrigin.has(row.origin_id)) rowsByOrigin.set(row.origin_id, []);
-    if (!rowsByCandidate.has(row.feature_id)) rowsByCandidate.set(row.feature_id, []);
-    rowsByOrigin.get(row.origin_id).push(row);
-    rowsByCandidate.get(row.feature_id).push(row);
+  const toWorld = ([lon,lat]) => [(lon-18.326)*111195*Math.cos(43.839*Math.PI/180),(43.839-lat)*111195];
+  const worldScreen = p => state.dimension==='3d'&&scene?scene.project(p,camera,width,height,pitch,bearing):[(p[0]-camera.x)*camera.scale+width/2,(p[1]-camera.y)*camera.scale+height/2];
+  const screen = p => worldScreen(toWorld(p));
+  const screenWorld = p => state.dimension==='3d'&&scene?scene.unproject(p,camera,width,height,pitch,bearing):[camera.x+(p[0]-width/2)/camera.scale,camera.y+(p[1]-height/2)/camera.scale];
+  const paths={};
+  function addPath(key,points,close=false){if(!paths[key])paths[key]=new Path2D();const path=paths[key];points.forEach((point,i)=>{const [x,y]=toWorld(point);if(i)path.lineTo(x,y);else path.moveTo(x,y);});if(close)path.closePath();}
+  display.surfaces.forEach(f=>addPath(f.k,f.p,f.k!=='waterway'));
+  display.roads.forEach(f=>addPath(['motorway','motorway_link','trunk','trunk_link','primary','primary_link'].includes(f.k)?'major':['secondary','secondary_link','tertiary','tertiary_link'].includes(f.k)?'avenue':['footway','path','steps','cycleway','track'].includes(f.k)?'path':'street',f.p));
+  const labelRoads = display.roads.filter(r=>r.n&&r.p.length>2).sort((a,b)=>b.p.length-a.p.length);
+  function prepare3D(){scene=new window.SportSpace3D($('#spatialCanvas'),display,toWorld);if(!scene.available)return false;if(window.SportSpaceEnvironmentLayer)scene.setTrees(window.SportSpaceEnvironmentLayer.treePoints,toWorld);updateGround();return true;}
+  function updateGround(){
+    const texture=document.createElement('canvas');texture.width=3072;texture.height=2048;const t=texture.getContext('2d');
+    const northwest=toWorld([18.279,43.867]),southeast=toWorld([18.381,43.811]);const bounds=[northwest[0],northwest[1],southeast[0],southeast[1]];
+    const sx=texture.width/(bounds[2]-bounds[0]),sy=texture.height/(bounds[3]-bounds[1]);
+    t.fillStyle='#e5ece7';t.fillRect(0,0,texture.width,texture.height);t.setTransform(sx,0,0,sy,-bounds[0]*sx,-bounds[1]*sy);
+    if(mapLayers.context&&paths.green){t.fillStyle='#ccddcb';t.fill(paths.green);}if(state.environment)window.SportSpaceEnvironmentLayer?.paint(t);if(mapLayers.context&&paths.water){t.fillStyle='#b5d0cf';t.fill(paths.water);}if(mapLayers.context&&paths.waterway){t.strokeStyle='#aacacb';t.lineWidth=14;t.stroke(paths.waterway);}
+    if(state.buildings&&paths.building){t.fillStyle='#edf1e9';t.strokeStyle='#c5d3c6';t.lineWidth=1.5;t.fill(paths.building);t.stroke(paths.building);}
+    for(const [key,line] of [['street',9],['avenue',16],['major',24],['path',3]]){if(paths[key]){t.lineWidth=line+3;t.lineCap='round';t.lineJoin='round';t.strokeStyle='#c6d1c8';t.stroke(paths[key]);t.lineWidth=line;t.strokeStyle=key==='major'?'#f7f7e9':'#f7f9f2';t.stroke(paths[key]);}}
+    scene.setGround(texture,bounds);$('#heightNote').title=`${scene.stats.extruded} objekata sa visinom ili brojem etaža; ${scene.stats.unknown_flat} bez visine prikazano je ravno. Procena: 3 m po OSM etaži. To nisu izmerene visine.`;
+    return true;
   }
-  const eventsByCandidate = new Map();
-  for (const event of data.verification.events) {
-    if (!eventsByCandidate.has(event.feature_id)) eventsByCandidate.set(event.feature_id, []);
-    eventsByCandidate.get(event.feature_id).push(event);
+  function setDimension(value){
+    if(value==='3d'&&!scene&&!prepare3D()){const b=$('[data-dimension="3d"]');b.disabled=true;b.title='3D nije dostupan na ovom uređaju; 2D zadržava sve rezultate.';$('#liveAnnouncement').textContent=b.title;return;}
+    if(value==='3d'&&!scene.available)return;
+    cancelAnimationFrame(spatialFrame);state.dimension=value;workspace.classList.toggle('spatial',value==='3d');$('#spatialCanvas').hidden=value!=='3d';$('#heightNote').hidden=value!=='3d';
+    document.querySelectorAll('[data-dimension]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dimension===value)));
+    if(value==='3d'){fitCamera(true);const from=pitch,to=54*Math.PI/180,start=performance.now();const tick=now=>{const t=reduced.matches?1:Math.min(1,(now-start)/550),e=1-(1-t)**3;pitch=from+(to-from)*e;requestDraw();if(t<1)spatialFrame=requestAnimationFrame(tick);else spatialFrame=0;};spatialFrame=requestAnimationFrame(tick);}else{pitch=0;bearing=0;fitCamera(mobile());baseDirty=true;requestDraw();}
+    $('#liveAnnouncement').textContent=value==='3d'?'3D prostorni pogled. Nepoznate visine ostaju ravni obrisi.':'2D kartografski pogled.';
   }
-  const sourceById = new Map(data.verification.sources.map(source => [source.source_id, source]));
+  const worldRoutes = new Map();
+  function routeFor(c) {if(!c)return null;const key=`${state.origin}/${c.id}`;if(worldRoutes.has(key))return worldRoutes.get(key);const raw=display.routes[state.origin]?.[c.id];if(!raw)return null;const p=raw.p.map(toWorld);let total=0;const lengths=[];for(let i=1;i<p.length;i++){const length=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);lengths.push(length);total+=length;}const result={p,total,lengths,snap:raw.snap};worldRoutes.set(key,result);return result;}
+  function transform(c){c.setTransform(dpr*camera.scale,0,0,dpr*camera.scale,dpr*(width/2-camera.x*camera.scale),dpr*(height/2-camera.y*camera.scale));}
+  function drawBase(){
+    if(!baseCtx)return;
+    baseCtx.setTransform(dpr,0,0,dpr,0,0);baseCtx.fillStyle='#e5ece7';baseCtx.fillRect(0,0,width,height);transform(baseCtx);
+    if(mapLayers.context&&paths.green){baseCtx.fillStyle='#ccddcb';baseCtx.fill(paths.green);}if(state.environment)window.SportSpaceEnvironmentLayer?.paint(baseCtx);
+    if(mapLayers.context&&paths.water){baseCtx.fillStyle='#b5d0cf';baseCtx.fill(paths.water);}
+    if(mapLayers.context&&paths.waterway){baseCtx.strokeStyle='#aacacb';baseCtx.lineWidth=15;baseCtx.lineCap='round';baseCtx.stroke(paths.waterway);}
+    if(state.buildings&&paths.building){baseCtx.save();baseCtx.translate(2,3);baseCtx.fillStyle='#c8d3cb';baseCtx.fill(paths.building);baseCtx.restore();baseCtx.fillStyle='#f0f2eb';baseCtx.strokeStyle='#cbd5cc';baseCtx.lineWidth=.7/camera.scale;baseCtx.fill(paths.building);baseCtx.stroke(paths.building);}
+    for(const [key,outline,line] of [['street',3.8,2.4],['avenue',7,5],['major',10,7.3]]){if(!paths[key])continue;baseCtx.lineCap='round';baseCtx.lineJoin='round';baseCtx.lineWidth=outline*Math.max(.6,Math.min(1.7,Math.sqrt(camera.scale/.19)))/camera.scale;baseCtx.strokeStyle='#c6d1c8';baseCtx.stroke(paths[key]);baseCtx.lineWidth=line*Math.max(.6,Math.min(1.7,Math.sqrt(camera.scale/.19)))/camera.scale;baseCtx.strokeStyle=key==='major'?'#f7f7e9':'#f7f9f2';baseCtx.stroke(paths[key]);}
+    if(paths.path){baseCtx.lineWidth=1/camera.scale;baseCtx.strokeStyle='#b9cbb9';baseCtx.stroke(paths.path);}
+    baseCtx.setTransform(dpr,0,0,dpr,0,0);
+    const names=new Set(),boxes=[];
+    baseCtx.font='10px "Segoe UI", sans-serif';baseCtx.textAlign='center';baseCtx.textBaseline='middle';
+    for(const road of labelRoads){if(names.has(road.n))continue;const p=road.p[Math.floor(road.p.length/2)],q=screen(p);if(q[0]<60||q[0]>width-60||q[1]<40||q[1]>height-30)continue;const tw=baseCtx.measureText(road.n).width;if(boxes.some(b=>Math.abs(q[0]-b.x)<(tw+b.w)/2+20&&Math.abs(q[1]-b.y)<35))continue;names.add(road.n);boxes.push({x:q[0],y:q[1],w:tw});baseCtx.strokeStyle='#edf2e8';baseCtx.lineWidth=3;baseCtx.strokeText(road.n,q[0],q[1]);baseCtx.fillStyle='#637b6b';baseCtx.fillText(road.n,q[0],q[1]);if(names.size>45)break;}
+    baseDirty=false;
+  }
+  function polyline(points,color,lineWidth,dash=[],fraction=1){
+    if(!points?.length)return;const spatial=state.dimension==='3d';const put=p=>spatial?worldScreen(p):p;ctx.save();if(spatial)ctx.setTransform(dpr,0,0,dpr,0,0);else transform(ctx);ctx.lineWidth=spatial?lineWidth:lineWidth/camera.scale;ctx.strokeStyle=color;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(dash.map(v=>spatial?v:v/camera.scale));ctx.beginPath();ctx.moveTo(...put(points[0]));
+    if(fraction===1){for(let i=1;i<points.length;i++)ctx.lineTo(...put(points[i]));}else{let total=0;for(let i=1;i<points.length;i++)total+=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);let left=total*fraction;for(let i=1;i<points.length;i++){const len=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);if(left>=len){ctx.lineTo(...put(points[i]));left-=len;}else{const t=len?left/len:0;ctx.lineTo(...put([points[i-1][0]+(points[i][0]-points[i-1][0])*t,points[i-1][1]+(points[i][1]-points[i-1][1])*t]));break;}}}
+    ctx.stroke();ctx.restore();
+  }
+  function drawRoute(c,fraction=1,ghost=false){const route=routeFor(c);if(!route)return;const color=ghost?'#397b6866':'#207663';polyline(route.p,'#f8fff6dd',7,[],fraction);polyline(route.p,color,3.5,[],fraction);polyline([toWorld(origin().point),route.p[0]],color,2,[3,4]);if(fraction===1)polyline([route.p.at(-1),toWorld(c.point)],color,2,[3,4]);}
+  function roundedBox(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+  function labelAt(text,x,y,selected=false){text=window.SportSpaceI18n?.text(text)||text;ctx.font=`${selected?'600':'500'} 11px "Segoe UI",sans-serif`;const w=ctx.measureText(text).width+19;const xx=Math.max(6,Math.min(width-w-6,x-w/2));ctx.fillStyle=selected?'#214f43':'#f9fcf4f5';ctx.strokeStyle=selected?'#214f43':'#c0d3c0';ctx.lineWidth=1;roundedBox(xx,y,w,26,7);ctx.fill();ctx.stroke();ctx.fillStyle=selected?'#fff':'#43624f';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,xx+w/2,y+13);}
+  function drawCandidate(c){const selected=c.id===state.selected&&!contextSelection;const [x,y]=screen(c.point);if(x<-30||x>width+30||y<-30||y>height+30)return;const faded=state.activity!=='all'&&c.props.activity_class!==state.activity;ctx.save();ctx.globalAlpha=faded?.25:1;ctx.fillStyle=selected?'#1e6959':'#fcfff7';ctx.strokeStyle=selected?'#fff':'#769c86';ctx.lineWidth=selected?2.4:1.3;const r=selected?14:10;if(selected){ctx.beginPath();ctx.arc(x,y,r+6,0,Math.PI*2);ctx.fillStyle='#23674e20';ctx.fill();ctx.fillStyle='#1e6959';}ctx.beginPath();if(c.props.activity_class==='pitch')ctx.roundRect(x-r,y-r,r*2,r*2,4);else if(c.props.activity_class==='playground'){ctx.moveTo(x,y-r-2);ctx.lineTo(x+r+1,y+r-2);ctx.lineTo(x-r-1,y+r-2);ctx.closePath();}else ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=selected?'#fff':'#3b6a53';ctx.font=`600 ${selected?11:9}px "Segoe UI",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.index,x,y+(c.props.activity_class==='playground'?2:0));if(selected)labelAt(c.name,x,y+23,true);ctx.restore();}
+  function drawOrigin(o,selected=false){const [x,y]=screen(o.point);ctx.save();ctx.fillStyle=selected?'#fff':'#eaf2e9';ctx.strokeStyle=selected?'#234a46':'#778f7b';ctx.lineWidth=selected?2:1;ctx.beginPath();ctx.arc(x,y,selected?8:4,0,Math.PI*2);ctx.fill();ctx.stroke();if(selected){ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#234a46';ctx.fill();labelAt(`Probno polazište ${String(o.index).padStart(2,'0')}`,x,y-43);}ctx.restore();}
+  function draw(){drawFrame=0;if(!ctx)return;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);if(state.dimension==='3d'&&scene?.available){scene.render(camera,width,height,dpr,pitch,bearing,state.buildings,state.environment&&mapLayers.vegetation&&!mapLayers.gradient);}else{if(baseDirty)drawBase();ctx.drawImage(base,0,0);}ctx.setTransform(dpr,0,0,dpr,0,0);drawDataOverlays();const c=contextSelection||screeningFeatures.length?null:byId.get(state.selected);if(!contextSelection&&!screeningFeatures.length&&state.view==='access'){const air=state.autoNearest?nearest('air'):c,net=state.autoNearest?nearest('network'):c;if(air)polyline([toWorld(origin().point),toWorld(air.point)],'#8b79b8',2.2,[5,5],state.measure==='air'?progress:1);if(net)drawRoute(net,state.measure==='network'?progress:1,state.measure==='air');}else if(c){if(state.measure==='network')drawRoute(c,progress);else polyline([toWorld(origin().point),toWorld(c.point)],'#8070aa',2.5,[5,5],progress);}
+    if(state.origins)origins.filter(o=>o.id!==state.origin).forEach(o=>drawOrigin(o));candidates.filter(c=>contextSelection||c.id!==state.selected).forEach(drawCandidate);if(c)drawCandidate(c);drawOrigin(origin(),true);
+    $('.compass span').style.transform=`rotate(${state.dimension==='3d'?Math.atan2(Math.sin(bearing),Math.cos(bearing)*Math.cos(pitch))*180/Math.PI:0}deg)`;const meters= [50,100,200,500,1000].find(n=>n*camera.scale>=55)||1000;$('#mapScale').hidden=state.dimension==='3d';$('#mapScale').innerHTML=`${distance(meters)}<span style="width:${meters*camera.scale}px"></span>`;
+  }
+  function requestDraw(){if(!drawFrame)drawFrame=requestAnimationFrame(draw);}
+  function fitCamera(focus=false){const bbox=data.aoi.features[0].properties.bbox_wsen;let pts=[toWorld([bbox[0],bbox[1]]),toWorld([bbox[2],bbox[3]])];if(focus){const c=byId.get(state.selected),route=routeFor(c);pts=[toWorld(origin().point),...(route?.p||[]),...(c?[toWorld(c.point)]:[])];}const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const left=30,right=60,top=mobile()?190:130,bottom=105;const aw=Math.max(140,width-left-right),ah=Math.max(150,height-top-bottom);const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);camera.scale=Math.min(aw/Math.max(600,maxX-minX+150),ah/Math.max(450,maxY-minY+150));if(!focus)camera.initialScale=camera.scale;camera.x=(minX+maxX)/2-(left-right)/(2*camera.scale);camera.y=(minY+maxY)/2-(top-bottom)/(2*camera.scale);baseDirty=true;requestDraw();}
 
-  function project(lon, lat) {
-    const pad = Math.min(62, canvas.clientWidth * 0.12);
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const [west, south, east, north] = bbox;
-    const scale = Math.min((width - pad * 2) / (east - west), (height - pad * 2) / (north - south));
-    const mapWidth = (east - west) * scale;
-    const mapHeight = (north - south) * scale;
-    return [(width - mapWidth) / 2 + (lon - west) * scale, (height - mapHeight) / 2 + (north - lat) * scale];
-  }
-
-  function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    state.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(rect.width * state.pixelRatio));
-    canvas.height = Math.max(1, Math.floor(rect.height * state.pixelRatio));
-    ctx.setTransform(state.pixelRatio, 0, 0, state.pixelRatio, 0, 0);
-    draw();
-  }
-
-  function drawGround() {
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    ctx.fillStyle = '#eee8dc';
-    ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(24,32,31,.055)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < width; x += 42) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
-    for (let y = 0; y < height; y += 42) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
-    const points = aoi.geometry.coordinates[0].map(([lon, lat]) => project(lon, lat));
-    ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
-    ctx.fillStyle = 'rgba(217,227,213,.56)'; ctx.strokeStyle = 'rgba(24,32,31,.35)'; ctx.lineWidth = 1.3; ctx.fill(); ctx.stroke();
-  }
-
-  function drawRelations() {
-    if (!['overview','nearest','unroutable'].includes(state.mode)) return;
-    for (const origin of origins) {
-      const nearest = nearestByOrigin.get(origin.id);
-      const candidate = candidateById.get(nearest?.nearest_network?.feature_id);
-      if (!candidate) continue;
-      const hasUnrouted = (rowsByOrigin.get(origin.id) || []).some(row => row.route_status !== 'routed');
-      if (state.mode === 'unroutable' && !hasUnrouted) continue;
-      const [x1, y1] = project(origin.lon, origin.lat);
-      const [x2, y2] = project(candidate.lon, candidate.lat);
-      ctx.save(); ctx.setLineDash(hasUnrouted ? [4, 6] : [10, 8]);
-      ctx.strokeStyle = hasUnrouted ? 'rgba(152,60,55,.58)' : 'rgba(21,87,255,.26)';
-      ctx.lineWidth = hasUnrouted ? 2.2 : 1.4;
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore();
+  function framePoints(points){
+    if(!points.length)return;
+    const surface=$('#mapSurface').getBoundingClientRect(),visible=el=>el&&!el.hidden&&getComputedStyle(el).display!=='none';
+    let left=28,right=width-65,top=75,bottom=height-110;
+    for(const selector of ['.atlas-toolbar','.view-switch','.height-note',...(mobile()?['.mobile-intro']:[])]){const el=$(selector);if(visible(el))top=Math.max(top,el.getBoundingClientRect().bottom-surface.top+16);}
+    for(const selector of ['.map-layers','.finding-strip']){const el=$(selector);if(visible(el))bottom=Math.min(bottom,el.getBoundingClientRect().top-surface.top-18);}
+    if(right-left<150){left=25;right=width-25;}if(bottom-top<120)top=Math.max(45,bottom-120);
+    const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);camera.x=(Math.min(...xs)+Math.max(...xs))/2;camera.y=(Math.min(...ys)+Math.max(...ys))/2;
+    camera.scale=Math.min((right-left)/Math.max(450,Math.max(...xs)-Math.min(...xs)+180),(bottom-top)/Math.max(350,Math.max(...ys)-Math.min(...ys)+160));
+    const target=[(left+right)/2,(top+bottom)/2];
+    for(let i=0;i<16;i++){const projected=points.map(worldScreen),xx=projected.map(p=>p[0]),yy=projected.map(p=>p[1]);const bounds=[Math.min(...xx),Math.min(...yy),Math.max(...xx),Math.max(...yy)],center=[(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2];
+      const current=screenWorld(center),desired=screenWorld(target);camera.x+=current[0]-desired[0];camera.y+=current[1]-desired[1];
+      const ratio=Math.min(1,(right-left-60)/Math.max(1,bounds[2]-bounds[0]),(bottom-top-65)/Math.max(1,bounds[3]-bounds[1]));if(ratio<.995)camera.scale*=Math.max(.35,ratio*.94);
     }
+    baseDirty=true;requestDraw();
   }
+  function frameSelection(){const c=byId.get(state.selected);framePoints([toWorld(origin().point),...(c?[toWorld(c.point)]:[]),...(state.measure==='network'?(routeFor(c)?.p||[]):[])]);}
 
-  function candidateColor(status) {
-    if (state.mode !== 'verification') return '#4f7f5f';
-    return { documented:'#1c7552', rejected:'#a35f2b', unresolved:'#8a6a10', unsampled:'#766d7d' }[statusClass(status)];
+  function resize(){const rect=$('#mapSurface').getBoundingClientRect();width=rect.width;height=rect.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=base.width=Math.round(width*dpr);canvas.height=base.height=Math.round(height*dpr);fitCamera(mobile());}
+  function zoom(factor,x=width/2,y=height/2){const before=screenWorld([x,y]),old=camera.scale;camera.scale=Math.max(camera.initialScale*.55,Math.min(camera.initialScale*12,old*factor));const after=screenWorld([x,y]);camera.x+=before[0]-after[0];camera.y+=before[1]-after[1];baseDirty=true;requestDraw();}
+
+  const statusInfo = c => c.props.access_model==='public_documented'?{kind:'documented',title:'Režim rada dokumentovan',note:'Ulaz i put nisu potvrđeni na terenu. Dokumentovan režim ne znači slobodan ili besplatan pristup.'}:c.props.verification_status==='same_source_confirmation_rejected'?{kind:'unknown',title:'Nedostaje nezavisna potvrda',note:'Drugi pronađeni zapis potiče iz istog OSM izvora. Pristup ovom mestu ostaje nepoznat.'}:c.props.verification_status?.includes('unresolved')?{kind:'unknown',title:'Tačno mesto još proveravamo',note:'Dokument opisuje lokalitet, ali njegova veza sa ovom tačkom nije razrešena.'}:{kind:'unknown',title:'Pristup još nije proveren',note:'Mesto potiče iz OSM izvoda i nije obuhvaćeno dokumentarnom proverom ovog pilota.'};
+  function renderList(){const rows=ranked();$('#placeCount').textContent=`${rows.length} mesta`;$('#listTitle').textContent=state.view==='access'?'Poređenje pristupa':'Mesta u okolini';$('#placesList').innerHTML=rows.map(({c,r})=>`<button type="button" class="place-row ${c.id===state.selected?'is-selected':''}" data-place="${esc(c.id)}" aria-pressed="${c.id===state.selected}"><span class="place-symbol">${icon(c.props.activity_class)}</span><span class="place-text"><strong>${esc(c.name)}</strong><small>${esc(typeName[c.props.activity_class]||'Aktivnost')}${c.props.access_model==='public_documented'?' · dokumentovano':''}</small></span><span class="place-distance">${esc(distance(state.measure==='network'?r.network_distance_m:r.air_distance_m))}</span></button>`).join('')||'<p class="empty-state">U ovom uzorku nema mesta za izabranu aktivnost.</p>';
+    $('#listFootnote').textContent=state.activity==='all'?'Različite aktivnosti nisu međusobne zamene. Izaberi vrstu za uže poređenje.':`Redosled prema ${state.measure==='network'?'izračunatoj mrežnoj':'vazdušnoj'} udaljenosti.`;
+    const summary=$('#accessSummary');summary.hidden=state.view!=='access';if(state.view==='access'){const a=nearest('air'),n=nearest('network');summary.innerHTML=!state.autoNearest?`<strong>Isto odredište, dva načina merenja.</strong>${esc(byId.get(state.selected)?.name)} — promeni prikaz da uporediš pravolinijsku i mrežnu udaljenost.`:!n?'<strong>Model nije pronašao mrežnu vezu.</strong>To je razlog za proveru grafa, ne dokaz neprohodnosti.':a.id!==n.id?`<strong>Način merenja menja izbor.</strong>Vazdušno: ${esc(a.name)}.<br>Kroz mrežu: ${esc(n.name)}.`:`<strong>Isto najbliže mesto.</strong>${esc(n.name)} ostaje najbliže u oba prikaza. Put kroz mrežu može biti duži.`;}
   }
-
-  function drawPoint(item, selected) {
-    const [x, y] = project(item.lon, item.lat);
-    const isCandidate = item.type === 'candidate';
-    const rows = isCandidate ? rowsByCandidate.get(item.id) || [] : rowsByOrigin.get(item.id) || [];
-    const hasUnrouted = rows.some(row => row.route_status !== 'routed');
-    const radius = (isCandidate ? 8 : 5.5) + (selected ? 3 : 0);
-    const fill = isCandidate ? candidateColor(item.props.verification_status) : (hasUnrouted ? '#983c37' : '#1557ff');
-    ctx.save();
-    ctx.beginPath(); ctx.arc(x, y, radius + (selected ? 7 : 3), 0, Math.PI * 2);
-    ctx.fillStyle = selected ? 'rgba(21,87,255,.18)' : 'rgba(255,250,240,.65)'; ctx.fill();
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill();
-    ctx.strokeStyle = selected ? '#1557ff' : '#fffaf0'; ctx.lineWidth = selected ? 3 : 1.5; ctx.stroke();
-    if (state.mode === 'verification' && isCandidate && item.props.in_verification_sample) {
-      ctx.setLineDash([3, 3]); ctx.strokeStyle = fill; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(x, y, radius + 8, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.restore();
+  const propertyName={existence:'Postojanje mesta',entrance_location:'Tačan ulaz',opening_regime:'Režim rada',public_access:'Javni pristup'};
+  const propertyValue={documented_present:'Postojanje je dokumentovano u javnom izvoru.',documented_unverified:'Postoji dokumentarni podatak, bez potvrde tačnog ulaza na terenu.',documented:'Režim je objavljen u izvoru. Njegova primena danas nije terenski proverena.',not_established:'Nije utvrđeno u ovom ograničenom uzorku.',same_source_rejected:'Zapis ponavlja isti izvor i nije prihvaćen kao nezavisna potvrda.',locality_documented_exact_match_unresolved:'Lokalitet je dokumentovan; veza sa tačno ovom tačkom ostaje nerazrešena.'};
+  function renderDetail(){const c=byId.get(state.selected);if(!c)return;const r=row(c),status=statusInfo(c),routed=r.network_distance_m!==null;
+    $('#selectionTitle').textContent=c.name;$('#selectionKind').textContent=typeName[c.props.activity_class]||'Mesto za aktivnost';$('#selectionNumber').textContent=`${String(c.index).padStart(2,'0')} / 12`;
+    $('#mobileResultName').textContent=c.name;$('#mobileResultValue').textContent=state.measure==='air'?distance(r.air_distance_m):routed?`${number(r.travel_time_min)} min`:'Bez veze';
+    const max=Math.max(r.network_distance_m||0,r.air_distance_m,1);
+    const hero=state.measure==='air'?`<strong>${distance(r.air_distance_m).split(' ')[0]}</strong><span>${distance(r.air_distance_m).split(' ')[1]}</span>`:routed?`<strong>${number(r.travel_time_min)}</strong><span>min</span>`:'<strong style="font-size:29px;letter-spacing:-1px">Nema mrežne veze</strong>';
+    $('#selectionBody').innerHTML=`<div class="metric-hero">${hero}</div><p class="metric-caption">${state.measure==='air'?'Vazdušna udaljenost · nije dužina puta':routed?`${distance(r.network_distance_m)} kroz modelovanu mrežu · hod 1,2 m/s`:'Proveriti povezanost grafa za ovo probno polazište.'}</p><div class="distance-comparison">${[['air','Vazdušno',r.air_distance_m],['network','Kroz mrežu',r.network_distance_m]].map(([key,title,value])=>`<div class="distance-item ${key}"><div class="distance-label"><span>${title}</span><strong>${distance(value)}</strong></div><div class="distance-track"><div class="distance-fill" style="width:${value===null?0:Math.max(1,value/max*100)}%;${value===null?'min-width:0;':''}"></div></div></div>`).join('')}</div><p class="distance-delta">${routed?`Mrežni put je ${distance(Math.max(0,r.network_distance_m-r.air_distance_m))} duži od pravolinijske veze.`:'Nerutiran slučaj nije dokaz da stvarni prolaz ne postoji.'}</p><button type="button" class="replay-button" id="playRoute" ${!routed&&state.measure==='network'?'disabled':''}>${icon('play')}<span>Otkrij putanju</span></button><p class="animation-note">Animacija geometrije, ne simulacija vremena hoda.</p>`;
+    $('#evidenceSummary').innerHTML=`<div class="evidence-status ${status.kind}">${icon(status.kind==='documented'?'check':'info')} ${esc(status.title)}</div><p>${esc(status.note)}</p>`;
+    const events=data.verification.events.filter(e=>e.feature_id===c.id);const refs=(c.props.verification_source_refs||[]).map(id=>sources.get(id)).filter(Boolean);
+    $('#evidenceBody').innerHTML=`<p>${esc(data.verification.status_definitions[c.props.verification_status]||status.note)}</p><h3>Provera svojstava</h3>${events.length?events.map(e=>`<div class="property-row"><strong>${esc(propertyName[e.property]||e.property)}</strong><p>${esc(propertyValue[e.observed_value.status]||'Status zahteva dodatnu proveru.')}</p></div>`).join(''):'<p>Ovo mesto nije među pet dokumentarno pregledanih kandidata.</p>'}<h3>Javni izvori</h3>${refs.length?`<ul>${refs.map(s=>`<li><a href="${esc(/^https:\/\//.test(s.url)?s.url:'#')}" target="_blank" rel="noopener">${esc(s.title)}</a><br>Pregledano ${esc(s.retrieved_on)}</li>`).join('')}</ul>`:'<p>Nema prihvaćenog nezavisnog izvora u ovom uzorku.</p>'}<h3>Osnova računa</h3><p>Probno polazište ${origin().index}. Mreža iz OSM snimka; brzina 1,2 m/s. Prikazane putanje reprodukuju postojeći model i nisu navigaciono uputstvo. Isprekidane veze spajaju tačke sa grafom; prolazi i ulazi nisu potvrđeni.</p><p>Spajanje polazišta: ${distance(r.origin_snap_m)}; spajanje mesta: ${distance(r.candidate_snap_m)}. Smerovi i kvalitet mreže zahtevaju proveru.</p><p class="proof-id">method_run_002 · OSM ${esc(c.props.source_osm_type)}/${esc(c.props.source_osm_id)}<br>SHA-256 ${esc(data.source_hashes.run)}</p>`;
+    $('#playRoute').addEventListener('click',()=>animationFrame?pauseReveal():reveal(pausedAt>0));
+    $('.map-key').innerHTML=state.view==='access'?'<span class="legend-route"></span>Mreža <span class="legend-air"></span>Vazdušno <span class="legend-snap"></span>Neproverena veza':state.measure==='network'?'<span class="legend-route"></span>Modelovana putanja <span class="legend-snap"></span>Neproverena veza':'<span class="legend-air"></span>Vazdušna udaljenost · nije putanja';
+    $('#liveAnnouncement').textContent=`${c.name}. ${state.measure==='network'?(routed?`${number(r.travel_time_min)} minuta u modelu.`:'Model nema mrežnu vezu.'):`${distance(r.air_distance_m)} vazdušno.`} ${status.title}.`;
   }
-
-  function drawLabels() {
-    if (!['verification','nearest','unroutable'].includes(state.mode)) return;
-    ctx.font = '12px ui-sans-serif, system-ui'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(24,32,31,.76)';
-    const items = state.mode === 'verification' ? candidates.filter(item => item.props.in_verification_sample) : origins;
-    for (const item of items) {
-      const [x, y] = project(item.lon, item.lat);
-      ctx.fillText(item.type === 'candidate' ? (item.props.name || item.props.activity_class) : item.id, x + 13, y);
-    }
+  function setPlayLabel(playing){const button=$('#playRoute');if(button)button.innerHTML=`${icon(playing?'pause':'play')}<span>${playing?'Pauziraj prikaz':progress===1?'Ponovi prikaz':'Nastavi prikaz'}</span>`;}
+  function pauseReveal(){cancelAnimationFrame(animationFrame);animationFrame=0;pausedAt=progress<1?progress:0;setPlayLabel(false);}
+  function reveal(resume=false){cancelAnimationFrame(animationFrame);animationFrame=0;if(reduced.matches){progress=1;pausedAt=0;requestDraw();setPlayLabel(false);return;}progress=resume?pausedAt:0;pausedAt=0;animationStart=performance.now()-progress*1250;setPlayLabel(true);function tick(now){progress=Math.min(1,(now-animationStart)/1250);requestDraw();if(progress<1)animationFrame=requestAnimationFrame(tick);else{animationFrame=0;setPlayLabel(false);}}animationFrame=requestAnimationFrame(tick);}
+  function render(){document.querySelectorAll('[data-activity]').forEach(b=>{const active=b.dataset.activity===state.activity;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});document.querySelectorAll('[data-measure]').forEach(b=>{const active=b.dataset.measure===state.measure;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});document.querySelectorAll('[data-view]').forEach(b=>{const active=b.dataset.view===state.view;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});$('#originSelect').value=$('#mobileOrigin').value=state.origin;$('#mobileActivity').value=state.activity;renderList();renderDetail();requestDraw();window.dispatchEvent(new Event('sportspace-render'));}
+  function openDetail(){if(mobile()){workspace.classList.remove('browse-open');$('#detailPanel').classList.add('detail-open');$('#mobileResult').setAttribute('aria-expanded','true');$('#detailPanel').scrollTop=0;}window.dispatchEvent(new Event('sportspace-open-detail'));}
+  function selectCandidate(id,open=true){if(!byId.has(id))return;state.selected=id;state.autoNearest=false;render();$('#detailPanel').scrollTop=0;window.dispatchEvent(new Event('sportspace-selection'));if(open){window.dispatchEvent(new Event('sportspace-destination'));openDetail();}frameSelection();reveal();}
+  function setOrigin(id){if(!origins.some(o=>o.id===id))return;state.origin=id;state.autoNearest=true;chooseNearest();render();window.dispatchEvent(new Event('sportspace-selection'));frameSelection();reveal();}
+  function setActivity(value){state.activity=value;state.autoNearest=true;chooseNearest();render();window.dispatchEvent(new Event('sportspace-selection'));frameSelection();reveal();}
+  function setMeasure(value){state.measure=value;if(state.autoNearest)chooseNearest();render();frameSelection();reveal();}
+  function setView(view){state.view=view;state.autoNearest=true;chooseNearest();render();if(mobile()){workspace.classList.toggle('browse-open',view==='places');if(view==='access')openDetail();else{$('#detailPanel').classList.remove('detail-open');$('#mobileResult').setAttribute('aria-expanded','false');}}reveal();}
+  for(const select of [$('#originSelect'),$('#mobileOrigin')])select.innerHTML=origins.map(o=>`<option value="${o.id}">Polazište ${String(o.index).padStart(2,'0')} · probno</option>`).join('');
+  $('#originSelect').addEventListener('change',e=>setOrigin(e.target.value));$('#mobileOrigin').addEventListener('change',e=>setOrigin(e.target.value));$('#mobileActivity').addEventListener('change',e=>setActivity(e.target.value));
+  document.querySelectorAll('[data-activity]').forEach(b=>b.addEventListener('click',()=>setActivity(b.dataset.activity)));document.querySelectorAll('[data-measure]').forEach(b=>b.addEventListener('click',()=>setMeasure(b.dataset.measure)));document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  $('#placesList').addEventListener('click',e=>{const b=e.target.closest('[data-place]');if(b)selectCandidate(b.dataset.place);});
+  $('#closeBrowse').addEventListener('click',()=>workspace.classList.remove('browse-open'));$('#closeDetail').addEventListener('click',()=>{$('#detailPanel').classList.remove('detail-open');$('#mobileResult').setAttribute('aria-expanded','false');$('#mobileResult').focus();});$('#mobileResult').addEventListener('click',openDetail);
+  $('#buildingsBtn').addEventListener('click',e=>{state.buildings=!state.buildings;e.currentTarget.setAttribute('aria-pressed',String(state.buildings));baseDirty=true;requestDraw();});$('#originsBtn').addEventListener('click',e=>{state.origins=!state.origins;e.currentTarget.setAttribute('aria-pressed',String(state.origins));requestDraw();});
+  $('#zoomIn').addEventListener('click',()=>zoom(1.3));$('#zoomOut').addEventListener('click',()=>zoom(1/1.3));$('#fitBtn').addEventListener('click',()=>fitCamera());$('#northBtn').addEventListener('click',()=>{bearing=0;fitCamera();});
+  document.querySelectorAll('[data-dimension]').forEach(b=>b.addEventListener('click',()=>setDimension(b.dataset.dimension)));
+  $('#rotateLeft').addEventListener('click',()=>{bearing-=Math.PI/12;requestDraw();});$('#rotateRight').addEventListener('click',()=>{bearing+=Math.PI/12;requestDraw();});
+  $('#spatialCanvas').addEventListener('spatial-unavailable',()=>{state.dimension='2d';$('#spatialCanvas').hidden=true;workspace.classList.remove('spatial');$('#heightNote').hidden=true;document.querySelectorAll('[data-dimension]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dimension==='2d')));baseDirty=true;requestDraw();$('#liveAnnouncement').textContent='Prostorni prikaz nije dostupan. Nastavljamo u 2D pogledu.';});
+  $('.skip-link').addEventListener('click',e=>{if(mobile()){e.preventDefault();workspace.classList.add('browse-open');$('#placesList').focus({preventScroll:true});}});
+  const routable=data.run.nearest_by_origin.filter(r=>r.nearest_network),changed=routable.filter(r=>r.nearest_air.feature_id!==r.nearest_network.feature_id),unrouted=data.run.nearest_by_origin.find(r=>!r.nearest_network);
+  $('.finding-number strong').innerHTML=`${changed.length}<span>/${routable.length}</span>`;
+  function showStory(which='change'){state.activity='all';state.measure='network';state.view='access';state.origins=which==='unrouted';$('#originsBtn').setAttribute('aria-pressed',String(state.origins));setOrigin(which==='unrouted'?unrouted.origin_id:changed[0].origin_id);if(mobile())openDetail();}
+  $('#storyBtn').addEventListener('click',()=>showStory());
+  $('#findingsContent').innerHTML=`<article class="finding-article"><span class="number">${changed.length}/${routable.length}</span><div><h3>Najbliže mesto može da se promeni.</h3><p>Za ${changed.length} od ${routable.length} probnih polazišta sa mrežnim rezultatom, najbliži kandidat vazdušno nije najbliži kroz mrežu. Uzorak obuhvata različite aktivnosti; nije opis stanovništva.</p><button type="button" data-finding="change">Pogledaj primer na mapi →</button></div></article><article class="finding-article"><span class="number">2/5</span><div><h3>Dokumentovan režim, otvorena pitanja.</h3><p>Dva od pet pregledanih kandidata imaju dokumentovan režim rada. Jedna potvrda istog porekla je odbačena, dva spoja dokumenta i tačke nisu razrešena. Nijedno mesto nema terensku potvrdu.</p></div></article><article class="finding-article"><span class="number">1/20</span><div><h3>Prekid u modelu traži proveru.</h3><p>Jedno od dvadeset sintetičkih polazišta nema izračunatu vezu do kandidata. To ne dokazuje stvarnu prepreku u gradu.</p><button type="button" data-finding="unrouted">Pronađi polazište →</button></div></article>`;
+  $('#findingsBtn').addEventListener('click',()=>$('#findingsDialog').showModal());$('#aboutBtn').addEventListener('click',()=>$('#aboutDialog').showModal());document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.close).close()));document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const b=d.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)d.close();}}));$('#findingsContent').addEventListener('click',e=>{const b=e.target.closest('[data-finding]');if(b){$('#findingsDialog').close();showStory(b.dataset.finding);}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#mapTooltip').hidden=true;workspace.classList.remove('browse-open');$('#detailPanel').classList.remove('detail-open');$('#mobileResult').setAttribute('aria-expanded','false');pauseReveal();}});
+  canvas.addEventListener('keydown',e=>{if(state.dimension==='3d'&&['q','e','r','f'].includes(e.key.toLowerCase())){e.preventDefault();const k=e.key.toLowerCase();if(k==='q')bearing-=Math.PI/12;if(k==='e')bearing+=Math.PI/12;if(k==='r')pitch=Math.min(1.2,pitch+.1);if(k==='f')pitch=Math.max(.2,pitch-.1);requestDraw();}const delta={ArrowLeft:[-65,0],ArrowRight:[65,0],ArrowUp:[0,-65],ArrowDown:[0,65]}[e.key];if(delta){e.preventDefault();camera.x+=delta[0]/camera.scale;camera.y+=delta[1]/camera.scale;baseDirty=true;requestDraw();}if(e.key==='+'||e.key==='='){e.preventDefault();zoom(1.25);}if(e.key==='-'){e.preventDefault();zoom(.8);}if(e.key==='Home'){e.preventDefault();fitCamera();}});
+  const pointers=new Map();let drag=null,pinch=null;
+  const mousePoint=e=>{const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
+  function hit(p){let best=null;for(const c of filtered()){const q=screen(c.point),d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<23&&(!best||d<best.d))best={type:'candidate',item:c,d};}if(state.origins){for(const o of origins){const q=screen(o.point),d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<16&&(!best||d<best.d))best={type:'origin',item:o,d};}}if(!best)for(const f of screeningFeatures){const q=screen(f.centroid),d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<12&&(!best||d<best.d))best={type:'green',item:f,d};}return best;}
+  canvas.addEventListener('contextmenu',e=>{if(state.dimension==='3d')e.preventDefault();});
+  canvas.addEventListener('pointerdown',e=>{const p=mousePoint(e);pointers.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);drag={start:p,last:p,moved:false,rotate:state.dimension==='3d'&&(e.button===2||e.shiftKey)};if(pointers.size===2){const [a,b]=[...pointers.values()];pinch={distance:Math.hypot(a[0]-b[0],a[1]-b[1]),angle:Math.atan2(b[1]-a[1],b[0]-a[0]),center:[(a[0]+b[0])/2,(a[1]+b[1])/2]};drag.moved=true;}$('#mapTooltip').hidden=true;});
+  canvas.addEventListener('pointermove',e=>{const p=mousePoint(e);if(pointers.has(e.pointerId)){pointers.set(e.pointerId,p);if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinch&&pinch.distance>0)zoom(distance/pinch.distance,(a[0]+b[0])/2,(a[1]+b[1])/2);const angle=Math.atan2(b[1]-a[1],b[0]-a[0]),center=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(pinch?.center){const before=screenWorld(pinch.center),after=screenWorld(center);camera.x+=before[0]-after[0];camera.y+=before[1]-after[1];if(state.dimension==='3d')bearing+=Math.atan2(Math.sin(angle-pinch.angle),Math.cos(angle-pinch.angle));}pinch={distance,angle,center};baseDirty=true;requestDraw();return;}if(drag){if(Math.hypot(p[0]-drag.start[0],p[1]-drag.start[1])>4)drag.moved=true;if(drag.rotate){bearing+=(p[0]-drag.last[0])*.008;pitch=Math.max(.2,Math.min(1.2,pitch+(p[1]-drag.last[1])*.005));drag.last=p;requestDraw();return;}const before=screenWorld(drag.last),after=screenWorld(p);camera.x+=before[0]-after[0];camera.y+=before[1]-after[1];drag.last=p;baseDirty=true;requestDraw();}return;}const target=hit(p);canvas.style.cursor=target?'pointer':'grab';const tooltip=$('#mapTooltip');tooltip.hidden=!target;if(target){tooltip.textContent=target.type!=='origin'?target.item.name:`Probno polazište ${target.item.index}`;tooltip.style.left=Math.max(6,Math.min(width-250,p[0]+17))+'px';tooltip.style.top=Math.max(5,p[1]-38)+'px';}});
+  canvas.addEventListener('pointerup',e=>{const p=mousePoint(e),wasPinch=!!pinch;pointers.delete(e.pointerId);if(!pointers.size){if(drag&&!drag.moved&&!wasPinch){const target=hit(p);if(target?.type==='candidate')selectCandidate(target.item.id);if(target?.type==='green')window.dispatchEvent(new CustomEvent('sportspace-green-select',{detail:target.item.id}));if(target?.type==='origin'){setOrigin(target.item.id);openDetail();}if(!target&&state.environment){const text=window.SportSpaceEnvironmentLayer?.inspectWorld(screenWorld(p)),tooltip=$('#mapTooltip');tooltip.textContent=text;tooltip.hidden=false;tooltip.style.left=Math.max(6,Math.min(width-250,p[0]+12))+'px';tooltip.style.top=Math.max(5,p[1]-48)+'px';$('#liveAnnouncement').textContent=text;}}drag=null;pinch=null;}else{const p=[...pointers.values()][0];drag={start:p,last:p,moved:true};}});
+  canvas.addEventListener('pointercancel',()=>{pointers.clear();drag=null;pinch=null;});canvas.addEventListener('pointerleave',()=>$('#mapTooltip').hidden=true);canvas.addEventListener('wheel',e=>{e.preventDefault();const p=mousePoint(e);zoom(Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.002),...p);},{passive:false});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&animationFrame)pauseReveal();});reduced.addEventListener('change',()=>{if(reduced.matches){pauseReveal();progress=1;pausedAt=0;requestDraw();}});window.addEventListener('pagehide',e=>{cancelAnimationFrame(animationFrame);cancelAnimationFrame(spatialFrame);if(!e.persisted)scene?.dispose();});
+  new ResizeObserver(resize).observe($('#mapSurface'));
+  window.addEventListener('sportspace-env-layer',e=>{state.environment=Boolean(e.detail);baseDirty=true;if(scene?.available)updateGround();requestDraw();});
+  const mapLayers={context:true,network:false,buffer:false,air:false,gradient:false,vegetation:true};let contextSelection=null,gradientFootprint=null,screeningFeatures=[],profileAreas=[];
+  function polygonOverlay(points,fill,stroke){const p=points.map(screen);ctx.save();ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(...q):ctx.moveTo(...q));ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}
+  function drawDataOverlays(){for(const area of profileAreas){const p=area.point,r=300;polygonOverlay(Array.from({length:49},(_,i)=>[p[0]+Math.cos(i/48*Math.PI*2)*r/(111195*Math.cos(43.839*Math.PI/180)),p[1]+Math.sin(i/48*Math.PI*2)*r/111195]),area.good?'#247c5930':'#b9893325',area.good?'#247c5980':'#b9893380');}
+   if(mapLayers.context){const named=display.surfaces.filter(f=>f.k==='green'&&f.n),boxes=[];for(const f of named){const p=f.p[Math.floor(f.p.length/2)],q=screen(p);if(mobile()&&(q[1]<225||q[1]>height-200))continue;if(q[0]<20||q[0]>width-20||q[1]<20||q[1]>height-20||boxes.some(b=>Math.hypot(b[0]-q[0],b[1]-q[1])<90))continue;boxes.push(q);labelAt(f.n,q[0],q[1]);}}
+   if(mapLayers.network&&!contextSelection)for(const c of filtered())if(c.id!==state.selected)drawRoute(c,1,true);
+   if(mapLayers.buffer&&!contextSelection){const c=byId.get(state.selected);if(c){const p=c.point,r=window.SportSpaceMap.radius;polygonOverlay(Array.from({length:65},(_,i)=>[p[0]+Math.cos(i/64*Math.PI*2)*r/(111195*Math.cos(43.839*Math.PI/180)),p[1]+Math.sin(i/64*Math.PI*2)*r/111195]),'#82b7771a','#4b8053');}}
+   if(mapLayers.air)polygonOverlay([[18.25,43.75],[18.35,43.75],[18.35,43.85],[18.25,43.85]],'#9f9acc25','#8980aa');
+   if(contextSelection){if(contextSelection.rings){ctx.save();ctx.beginPath();for(const ring of contextSelection.rings){const p=ring.map(screen);p.forEach((q,i)=>i?ctx.lineTo(...q):ctx.moveTo(...q));ctx.closePath();}ctx.fillStyle='#b87726aa';ctx.fill();ctx.restore();}else polygonOverlay(contextSelection.p,'#68aa5744','#286640');}
+   for(const f of screeningFeatures){const [x,y]=screen(f.centroid);if(x<0||x>width||y<0||y>height)continue;ctx.beginPath();ctx.arc(x,y,contextSelection?.id===f.id?7:4,0,Math.PI*2);ctx.fillStyle=contextSelection?.id===f.id?'#94551b':'#b47734';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();if(contextSelection?.id===f.id)labelAt(f.name,x,y+12,true);}
+   if(gradientFootprint&&mapLayers.gradient){const [x,y]=gradientFootprint,dx=100/(111195*Math.cos(43.839*Math.PI/180)),dy=100/111195;polygonOverlay([[x-dx,y-dy],[x+dx,y-dy],[x+dx,y+dy],[x-dx,y+dy]],'#ffffff22','#214f43');}
   }
+  window.SportSpaceMap={radius:300,get selected(){return state.selected;},frameSelection,select:selectCandidate,profileAreas(areas){profileAreas=areas;requestDraw();},refresh:render,screening(features){screeningFeatures=features;requestDraw();},redraw:requestDraw,view(view){state.view=view;render();},openDetail,footprint(p){gradientFootprint=p;requestDraw();},distanceTo(p){const a=toWorld(p),b=toWorld(origin().point);return Math.hypot(a[0]-b[0],a[1]-b[1]);},highlight(f){contextSelection=f;if(f){framePoints(f.p.map(toWorld));}baseDirty=true;requestDraw();},layers(opts){Object.assign(mapLayers,opts);state.buildings=opts.buildings;state.origins=opts.origins;$('#buildingsBtn').setAttribute('aria-pressed',String(state.buildings));$('#originsBtn').setAttribute('aria-pressed',String(state.origins));baseDirty=true;if(scene?.available)updateGround();requestDraw();}};
+  window.addEventListener('sportspace-language',()=>{render();baseDirty=true;requestDraw();});
 
-  function draw() {
-    drawGround(); drawRelations();
-    const selectedId = state.selected?.id;
-    for (const origin of origins) drawPoint(origin, selectedId === origin.id);
-    for (const candidate of candidates) drawPoint(candidate, selectedId === candidate.id);
-    drawLabels();
-  }
-
-  function hitTest(event) {
-    const rect = canvas.getBoundingClientRect();
-    const mouse = [event.clientX - rect.left, event.clientY - rect.top];
-    let best = null;
-    for (const item of [...candidates, ...origins]) {
-      const [x, y] = project(item.lon, item.lat);
-      const distance = Math.hypot(mouse[0] - x, mouse[1] - y);
-      if (distance < 19 && (!best || distance < best.distance)) best = { item, distance };
-    }
-    return best?.item || null;
-  }
-
-  const kv = rows => `<div class="kv">${rows.map(([key, value]) => `<span>${esc(key)}</span><span>${esc(value)}</span>`).join('')}</div>`;
-  const card = (title, body) => `<section class="info-card"><h3>${esc(title)}</h3>${body}</section>`;
-
-  function sourceLinks(item) {
-    const ids = item.props.verification_source_refs || [];
-    if (!ids.length) return '<p>Nema prihvatljivog nezavisnog izvora u ovom uzorku.</p>';
-    return `<ul class="source-list">${ids.map(id => {
-      const source = sourceById.get(id);
-      return source ? `<li><a class="source-link" href="${esc(safeUrl(source.url))}" target="_blank" rel="noopener">${esc(id)} · ${esc(source.title)}</a><small>${esc(source.independence_from_osm)} · pregledano ${esc(source.retrieved_on)}</small></li>` : '';
-    }).join('')}</ul>`;
-  }
-
-  function eventTable(item) {
-    const events = eventsByCandidate.get(item.id) || [];
-    if (!events.length) return '<p>Ovaj kandidat nije u petočlanom verifikacionom uzorku.</p>';
-    return `<div class="event-list">${events.map(event => `<article><div><strong>${esc(event.property)}</strong><span class="verification-badge ${esc(statusClass(item.props.verification_status))}">${esc(event.observed_value.status)}</span></div><p>${esc(event.observed_value.detail)}</p><small>${esc(event.confidence)} confidence · ${esc(event.source_independence)}</small></article>`).join('')}</div>`;
-  }
-
-  function candidateBody(item) {
-    const rows = rowsByCandidate.get(item.id) || [];
-    const routed = rows.filter(row => row.route_status === 'routed').sort((a, b) => a.network_distance_m - b.network_distance_m);
-    const best = routed[0];
-    const definition = data.verification.status_definitions[item.props.verification_status] || 'Status nije definisan.';
-    return [
-      card('Identitet kandidata', kv([
-        ['naziv', item.props.name || 'bez imena'], ['klasa', item.props.activity_class],
-        ['OSM ref', `${item.props.source_osm_type}/${item.props.source_osm_id}`], ['dedupe', item.props.dedupe_status]
-      ])),
-      card('Status dokaza', `<p class="status-explain">${esc(definition)}</p>${kv([
-        ['status', labelStatus(item.props.verification_status)], ['status režima', accessLabel(item.props.access_model)],
-        ['u uzorku', item.props.in_verification_sample ? 'da' : 'ne'], ['terenska provera', 'nije sprovedena']
-      ])}`),
-      card('Proverena svojstva', eventTable(item)),
-      card('Javni izvori', sourceLinks(item)),
-      card('Mrežni baseline', kv([
-        ['rutirani parovi', `${routed.length}/${rows.length}`], ['najbliži origin', best?.origin_id || 'n/a'],
-        ['najkraće vreme', fmt(best?.travel_time_min, ' min')], ['interpretacija', best?.interpretation_status || 'n/a']
-      ]))
-    ].join('');
-  }
-
-  function originBody(item) {
-    const nearest = nearestByOrigin.get(item.id);
-    const rows = rowsByOrigin.get(item.id) || [];
-    const unrouted = rows.filter(row => row.route_status !== 'routed').length;
-    const nearestCandidate = nearest?.nearest_network;
-    return [
-      card('Najbliži mrežni kandidat', kv([
-        ['kandidat', nearestCandidate?.name || nearestCandidate?.feature_id || 'n/a'],
-        ['klasa', nearestCandidate?.activity_class || 'n/a'], ['mrežna distanca', fmt(nearestCandidate?.network_distance_m, ' m')],
-        ['vreme hoda', fmt(nearestCandidate?.travel_time_min, ' min')], ['status dokaza', labelStatus(nearestCandidate?.verification_status)]
-      ])),
-      card('Integritet mreže', `<p>${unrouted ? `${unrouted} parova nije rutirano iz ovog origina. To je signal za proveru grafa, a ne dokaz stvarne prepreke.` : 'Svi parovi iz ovog origina rutirani su u tehničkom baseline grafu.'}</p>`),
-      card('Granica', `<p>${esc(item.props.claim_limit)}</p>`)
-    ].join('');
-  }
-
-  function renderInspector() {
-    const item = state.selected;
-    if (!item) {
-      ui.title.textContent = 'Izaberite element'; ui.status.textContent = 'bez izbora'; ui.status.className = 'status-pill';
-      ui.body.innerHTML = card('Šta možete proveriti', '<p>Uključite prikaz Provera i izaberite označeni kandidat. Inspektor odvaja mrežni rezultat, status svojstva, izvor i granicu tvrdnje.</p>');
-      renderEvidence(); return;
-    }
-    ui.title.textContent = item.label;
-    if (item.type === 'candidate') {
-      const status = statusClass(item.props.verification_status);
-      ui.status.textContent = labelStatus(item.props.verification_status);
-      ui.status.className = `status-pill ${status}`;
-      ui.body.innerHTML = candidateBody(item);
-    } else {
-      ui.status.textContent = 'sintetički origin'; ui.status.className = 'status-pill origin-status';
-      ui.body.innerHTML = originBody(item);
-    }
-    renderEvidence();
-  }
-
-  function renderEvidence() {
-    ui.evidence.innerHTML = `<p><strong>${esc(data.run.run_id)}</strong> · ${esc(data.run.method_version)}</p>
-      <ul><li>20 sintetičkih origina × 12 kandidata</li><li>5 kandidata u dokumentarnom uzorku · 15 događaja</li><li>2 dokumentovana režima · 0 terenskih potvrda</li></ul>
-      <p>${esc(data.evidence.public_claim_limit)}</p>
-      <p class="hash">run sha256: ${esc(data.source_hashes.run)}</p>`;
-  }
-
-  function renderMetrics() {
-    const counts = data.run.counts;
-    const rows = [
-      ['kandidati', counts.candidates], ['origini', counts.origins], ['rutirano', counts.routed_pairs],
-      ['uzorak provere', counts.verification_sample_candidates], ['dokumentovano', counts.documented_access_or_regime_candidates],
-      ['terenski potvrđeno', counts.public_verified_candidates], ['odbačeno isto poreklo', counts.same_source_rejected_candidates],
-      ['nerazrešen spoj', counts.unresolved_entity_match_candidates]
-    ];
-    ui.metrics.innerHTML = rows.map(([key, value]) => `<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join('');
-  }
-
-  function renderGuardrails() {
-    ui.guardrails.innerHTML = data.hard_limits.slice(0, 3).map(limit => `<span class="guardrail-chip">${esc(limit)}</span>`).join('');
-  }
-
-  function renderCompare() {
-    const renderPin = (label, item) => `<div class="compare-card"><strong>${label}: ${esc(item?.label || 'prazno')}</strong><span>${item ? esc(item.type === 'candidate' ? labelStatus(item.props.verification_status) : 'sintetički origin') : 'Izaberite element i sačuvajte.'}</span></div>`;
-    ui.compare.innerHTML = renderPin('A', state.pinA) + renderPin('B', state.pinB);
-  }
-
-  function select(item) { state.selected = item; renderInspector(); draw(); }
-  canvas.addEventListener('click', event => { const item = hitTest(event); if (item) select(item); });
-  canvas.addEventListener('mousemove', event => { const item = hitTest(event); ui.hover.textContent = item ? `${item.label} · ${item.type === 'candidate' ? labelStatus(item.props.verification_status) : 'sintetički origin'}` : 'Izaberite tačku ili kandidata'; });
-  canvas.addEventListener('keydown', event => {
-    const items = state.mode === 'verification' ? candidates.filter(item => item.props.in_verification_sample) : [...origins, ...candidates];
-    const current = Math.max(0, items.findIndex(item => item.id === state.selected?.id));
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { event.preventDefault(); select(items[(current + 1) % items.length]); }
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); select(items[(current - 1 + items.length) % items.length]); }
-    if (event.key === 'Enter' && !state.selected) { event.preventDefault(); select(items[0]); }
-  });
-  document.querySelectorAll('.mode-btn').forEach(button => button.addEventListener('click', () => {
-    state.mode = button.dataset.mode;
-    document.querySelectorAll('.mode-btn').forEach(item => item.classList.toggle('is-active', item === button));
-    ui.hover.textContent = state.mode === 'verification' ? 'Pet kandidata u dokumentarnom uzorku označeno je prstenom' : 'Izaberite tačku ili kandidata';
-    draw();
-  }));
-  $('#pinA').addEventListener('click', () => { if (state.selected) state.pinA = state.selected; renderCompare(); });
-  $('#pinB').addEventListener('click', () => { if (state.selected) state.pinB = state.selected; renderCompare(); });
-  $('#resetViewBtn').addEventListener('click', () => {
-    state.mode = 'overview'; state.selected = null; state.pinA = null; state.pinB = null;
-    document.querySelectorAll('.mode-btn').forEach(button => button.classList.toggle('is-active', button.dataset.mode === 'overview'));
-    ui.hover.textContent = 'Izaberite tačku ili kandidata'; renderInspector(); renderCompare(); draw();
-  });
-  window.addEventListener('resize', resizeCanvas);
-
-  renderMetrics(); renderGuardrails(); renderInspector(); renderCompare(); resizeCanvas();
+  render();resize();$('#loading').hidden=true;
 })();

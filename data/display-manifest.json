@@ -1,0 +1,21 @@
+{
+  "schema": "sportspace-display/v0.21",
+  "ok": true,
+  "roads": 4609,
+  "surfaces": 14159,
+  "routes": 228,
+  "max_distance_difference_m": 0.05,
+  "bytes": 4480143,
+  "source_hashes": {
+    "roads_sha256": "c261e84aabfddb4513e34634a6663a7f70fc774d7fa13a5043387994d6d08638",
+    "graph_sha256": "edcf396c27fe4622919d78ba07a907835e45a510db33be8b8568f2876997eba8",
+    "context_sha256": "0529e3d9da47e14dbb6d9d25315cdd6194d071a9ed3a3ac20b528f9ca83f94d6",
+    "osm_context_date": "2026-09-19T21:08:34Z"
+  },
+  "classification": "ODbL derived display database",
+  "limits": [
+    "Cartographic context is OSM mapping, not a measured environmental layer.",
+    "Paths reconstruct the unchanged E01 baseline; they are not validated pedestrian directions.",
+    "Dashed connectors are synthetic snap links, not verified entrances or paths."
+  ]
+}

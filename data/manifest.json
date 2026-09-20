@@ -45,5 +45,8 @@
     "LICENSE",
     "DATA-LICENSE.md",
     "NOTICE.md"
-  ]
+  ],
+  "interface_version": "0.21",
+  "display_data": "data/display-data.js",
+  "display_manifest": "data/display-manifest.json"
 }

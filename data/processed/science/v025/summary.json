@@ -1,0 +1,390 @@
+{
+  "schema": "sportspace-science/v025",
+  "inputs": {
+    "site/data/sportspace-data.js": "c73419247c62b4bdf976f1be3296e84a41489177b8c4acce6a9e05e2da689eb0",
+    "data/processed/environment/environment-v023.json": "e6411c6c47294847dfcb28d98213c30c139e78c37537542428d80cacd342a0a9",
+    "data/raw/environment/v023/cams-europe-2021.json": "4517d5b912200a22f0f8d4cbefc6ceb82fd7376bf5e460a9c33e48fc30ae24dc",
+    "data/raw/environment/v025/era5-weather-2021.json": "7d09ad0ac411bfc679932b4d60c23186df7f1dc151df296ea9e135acf17e314f",
+    "data/processed/environment/worldcover2021-clip.bin": "3fef2e93e69b78f1a2c4b74f5f9013365f1629c9fa74f85609811097d84da6fc",
+    "data/processed/environment/worldcover2021-clip.json": "58e129675b46f0962533b79e9ea5ede86be0830d0ae817f61c56785abde744a3"
+  },
+  "script_sha256": "d5dfa07a903870bcb7e389b67cdd5e89156ce4b584d723c7704aa2ae33663c64",
+  "e1": {
+    "all": {
+      "origins": 20,
+      "valid": 19,
+      "changed": 5,
+      "candidate_count": 12,
+      "comparative": true
+    },
+    "pitch": {
+      "origins": 20,
+      "valid": 19,
+      "changed": 0,
+      "candidate_count": 1,
+      "comparative": false
+    },
+    "playground": {
+      "origins": 20,
+      "valid": 19,
+      "changed": 4,
+      "candidate_count": 8,
+      "comparative": true
+    },
+    "sports_centre": {
+      "origins": 20,
+      "valid": 19,
+      "changed": 3,
+      "candidate_count": 3,
+      "comparative": true
+    }
+  },
+  "e2": {
+    "pitch": {
+      "parameter_rows": 513,
+      "pareto_changes_100_vs_500m": 0,
+      "valid_origin_threshold_cases": 57
+    },
+    "playground": {
+      "parameter_rows": 513,
+      "pareto_changes_100_vs_500m": 20,
+      "valid_origin_threshold_cases": 57
+    },
+    "sports_centre": {
+      "parameter_rows": 513,
+      "pareto_changes_100_vs_500m": 0,
+      "valid_origin_threshold_cases": 57
+    }
+  },
+  "e3": [
+    {
+      "stay_min": 30,
+      "pollutant": "pm2_5",
+      "paired_origin_destination_days": 83220,
+      "excluded_triplets": 0,
+      "concentration_time_unit": "µg·min/m³",
+      "values": {
+        "8": {
+          "n": 83220,
+          "mean": 2080.4398353928223,
+          "min": 184.90666666673496,
+          "p10": 812.6216944444953,
+          "median": 1790.3641666668263,
+          "p90": 3734.90624999813,
+          "max": 9987.84027777784
+        },
+        "14": {
+          "n": 83220,
+          "mean": 1572.3329408095117,
+          "min": 154.0888888889458,
+          "p10": 618.7535555555468,
+          "median": 1319.494861111362,
+          "p90": 2820.181000000094,
+          "max": 8891.808333333407
+        },
+        "18": {
+          "n": 83220,
+          "mean": 3179.0449098841314,
+          "min": 184.90666666673496,
+          "p10": 853.4681944443183,
+          "median": 2242.6199999994133,
+          "p90": 6946.040194445618,
+          "max": 25103.827222222448
+        }
+      },
+      "paired_differences": {
+        "14-08": {
+          "n": 83220,
+          "mean": -508.1068945833089,
+          "min": -5521.067777777813,
+          "p10": -1401.6530555555714,
+          "median": -401.3523611111116,
+          "p90": 163.78241666685898,
+          "max": 3170.111666666705
+        },
+        "18-08": {
+          "n": 83220,
+          "mean": 1098.605074491327,
+          "min": -5101.929722222249,
+          "p10": -496.49038888902874,
+          "median": 434.25277777782935,
+          "p90": 3687.764250001007,
+          "max": 16228.213611111269
+        },
+        "18-14": {
+          "n": 83220,
+          "mean": 1606.7119690746117,
+          "min": -1403.4397222222356,
+          "p10": 6.38200000003332,
+          "median": 812.4122222222272,
+          "p90": 4425.21494444433,
+          "max": 17795.836944444585
+        }
+      },
+      "lowest_integral_departure_counts": {
+        "8": 16238,
+        "14": 60633,
+        "18": 6277,
+        "ties": 72
+      }
+    },
+    {
+      "stay_min": 30,
+      "pollutant": "pm10",
+      "paired_origin_destination_days": 83220,
+      "excluded_triplets": 0,
+      "concentration_time_unit": "µg·min/m³",
+      "values": {
+        "8": {
+          "n": 83220,
+          "mean": 3140.607792627998,
+          "min": 254.24666666676058,
+          "p10": 1142.6760833332676,
+          "median": 2623.873611111114,
+          "p90": 5864.112083334382,
+          "max": 17075.31027777788
+        },
+        "14": {
+          "n": 83220,
+          "mean": 2714.6205017657308,
+          "min": 188.7588888889586,
+          "p10": 1022.9281666665422,
+          "median": 2263.379027777902,
+          "p90": 4999.132805555723,
+          "max": 14605.637500000099
+        },
+        "18": {
+          "n": 83220,
+          "mean": 4023.098329287874,
+          "min": 285.06444444454974,
+          "p10": 1164.6925555554155,
+          "median": 2880.796388888537,
+          "p90": 8732.11599999831,
+          "max": 25057.067500000194
+        }
+      },
+      "paired_differences": {
+        "14-08": {
+          "n": 83220,
+          "mean": -425.9872908622295,
+          "min": -8351.181111111142,
+          "p10": -1855.4884999999692,
+          "median": -224.7466666666354,
+          "p90": 661.3330833332725,
+          "max": 5460.526666666708
+        },
+        "18-08": {
+          "n": 83220,
+          "mean": 882.4905366598728,
+          "min": -9917.305555555622,
+          "p10": -1053.7745000000136,
+          "median": 240.9470833333645,
+          "p90": 3938.0016666667348,
+          "max": 16359.126666666798
+        },
+        "18-14": {
+          "n": 83220,
+          "mean": 1308.477827522107,
+          "min": -4978.300000000047,
+          "p10": -386.6633055555362,
+          "median": 505.23027777774536,
+          "p90": 4361.223250000025,
+          "max": 15691.963055555692
+        }
+      },
+      "lowest_integral_departure_counts": {
+        "8": 25668,
+        "14": 37242,
+        "18": 20286,
+        "ties": 24
+      }
+    },
+    {
+      "stay_min": 30,
+      "pollutant": "nitrogen_dioxide",
+      "paired_origin_destination_days": 83220,
+      "excluded_triplets": 0,
+      "concentration_time_unit": "µg·min/m³",
+      "values": {
+        "8": {
+          "n": 83220,
+          "mean": 1817.9111914236714,
+          "min": 138.68000000005122,
+          "p10": 705.5519166666433,
+          "median": 1569.6022222224012,
+          "p90": 3287.8909722215576,
+          "max": 8363.444444444496
+        },
+        "14": {
+          "n": 83220,
+          "mean": 1321.8108528365535,
+          "min": 65.48777777780197,
+          "p10": 429.2954444444342,
+          "median": 1029.8983333335286,
+          "p90": 2656.871499999908,
+          "max": 8813.267222222301
+        },
+        "18": {
+          "n": 83220,
+          "mean": 2344.6475057678717,
+          "min": 104.01000000003842,
+          "p10": 617.8649166665747,
+          "median": 1790.2811111112387,
+          "p90": 4970.936000000281,
+          "max": 13095.12194444454
+        }
+      },
+      "paired_differences": {
+        "14-08": {
+          "n": 83220,
+          "mean": -496.1003385871553,
+          "min": -5391.715833333362,
+          "p10": -1341.575749999983,
+          "median": -439.5705555554974,
+          "p90": 197.5909999999916,
+          "max": 3729.576944444485
+        },
+        "18-08": {
+          "n": 83220,
+          "mean": 526.7363143441843,
+          "min": -4600.256944444467,
+          "p10": -582.5001388888817,
+          "median": 159.44388888891262,
+          "p90": 2117.9264722217385,
+          "max": 7969.733333333395
+        },
+        "18-14": {
+          "n": 83220,
+          "mean": 1022.836652931325,
+          "min": -2029.4269444444626,
+          "p10": 53.91233333332525,
+          "median": 649.9898611111425,
+          "p90": 2531.5728611105733,
+          "max": 7923.337500000052
+        }
+      },
+      "lowest_integral_departure_counts": {
+        "8": 13136,
+        "14": 65274,
+        "18": 4690,
+        "ties": 120
+      }
+    },
+    {
+      "stay_min": 30,
+      "pollutant": "ozone",
+      "paired_origin_destination_days": 83220,
+      "excluded_triplets": 0,
+      "concentration_time_unit": "µg·min/m³",
+      "values": {
+        "8": {
+          "n": 83220,
+          "mean": 3539.2710978931673,
+          "min": 115.56666666670935,
+          "p10": 1195.5000000000086,
+          "median": 3149.7069444445024,
+          "p90": 6484.740000000329,
+          "max": 13977.605555555667
+        },
+        "14": {
+          "n": 83220,
+          "mean": 6144.07738751371,
+          "min": 577.8333333333285,
+          "p10": 2581.2747222218254,
+          "median": 5604.088888889062,
+          "p90": 10526.687222223958,
+          "max": 18873.327777777915
+        },
+        "18": {
+          "n": 83220,
+          "mean": 4934.265255113644,
+          "min": 77.0444444444729,
+          "p10": 1340.4308333333279,
+          "median": 4567.270833333787,
+          "p90": 9145.437777777901,
+          "max": 16266.033333333442
+        }
+      },
+      "paired_differences": {
+        "14-08": {
+          "n": 83220,
+          "mean": 2604.8062896205665,
+          "min": -3884.1500000000233,
+          "p10": 531.3333333333372,
+          "median": 2389.7499999999854,
+          "p90": 5127.15722222218,
+          "max": 11116.663888888957
+        },
+        "18-08": {
+          "n": 83220,
+          "mean": 1394.9941572204789,
+          "min": -6324.086111111159,
+          "p10": -713.9266666668642,
+          "median": 1342.8999999998487,
+          "p90": 3778.389999999455,
+          "max": 8273.583333333372
+        },
+        "18-14": {
+          "n": 83220,
+          "mean": -1209.81213240007,
+          "min": -8420.877777777845,
+          "p10": -2663.955000000796,
+          "median": -996.9666666664416,
+          "p90": -40.62722222217123,
+          "max": 1918.3499999993364
+        }
+      },
+      "lowest_integral_departure_counts": {
+        "8": 62767,
+        "14": 456,
+        "18": 19650,
+        "ties": 347
+      }
+    }
+  ],
+  "e4": {
+    "uniform_concentration_test": true,
+    "missing_interval_test": true,
+    "out_of_archive_test": true,
+    "zero_is_valid_test": true,
+    "nested_intervals_checked": 4380,
+    "nested_violations": 0,
+    "station_comparison": "NOT_RUN: no verified licensed contemporaneous station series; no station value is joined to 2021",
+    "spatial_support": "One shared CAMS cell and one different ERA5 cell; no local air interpolation"
+  },
+  "assumptions": {
+    "walk_speed_ms": 1.2,
+    "minutes": "network_distance_m / 72; published distance precision 0.1m, avoiding rounded travel_time_min",
+    "return_route": "same duration as outward, scenario assumption, not recomputed reverse route",
+    "stay_minutes": [
+      15,
+      30,
+      60
+    ],
+    "departure_local_hours": [
+      8,
+      14,
+      18
+    ],
+    "timezone": "Europe/Sarajevo",
+    "year": 2021,
+    "air_time_semantics": "value at hourly label held constant over following hour; explicit scenario discretization, not inferred station averaging",
+    "weather_semantics": {
+      "temperature_2m": "instantaneous at timestamp",
+      "relative_humidity_2m": "instantaneous at timestamp",
+      "wind_speed_10m": "instantaneous at timestamp",
+      "wind_direction_10m": "meteorological direction FROM; instantaneous at timestamp",
+      "precipitation": "sum over preceding hour",
+      "shortwave_radiation": "mean over preceding hour"
+    },
+    "local_year_boundary": "UTC archive starts at 01:00 local Jan1 and ends at 00:00 local Jan1 2022; local monthly/hour summaries exclude the latter and retain 8759 hours; all departure triplets have full trip coverage",
+    "environment_precision": "Buffer shares recalculated from raw pixels without output rounding; underlying source distances rounded to0.1m",
+    "spatial_years": "fixed OSM2026 network with 2021 environment; not historical reconstruction",
+    "route_selection": "existing single route per pair; not alternative-route optimization",
+    "water": "descriptive; no cooling or health coefficient",
+    "population": "synthetic origins, unweighted, no inference to residents",
+    "meteo_role": "context only; no thermal or dispersion model",
+    "wind_bins": "8 FROM sectors, >=10h to expose concentration summary, calm<0.5m/s separate; no source attribution",
+    "station_data": "not ingested, rights/time/metadata unresolved"
+  }
+}

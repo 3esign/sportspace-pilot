@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Metadata for the local SportSpace research software. This is not a citation of a published paper; public release metadata must be finalized before archiving."
+type: software
+title: "SportSpace: urban activity access explorer"
+authors:
+  - family-names: "Poturak"
+    given-names: "Semir"
+    affiliation: "University of Travnik, Faculty of Technical Sciences"
+  - family-names: "Tuzović"
+    given-names: "Amra"
+    affiliation: "University of Travnik, Faculty of Technical Sciences"
+version: "0.24-local"
+abstract: "A 2D/3D research prototype for exploring activity destinations, modeled network access and destination-exclusion sensitivity scenarios in Stup / Ilidza. Synthetic origins are not residents. The prototype does not estimate health effects."
+keywords:
+  - urban activity spaces
+  - network accessibility
+  - geovisualization
+  - scenario analysis
