@@ -12,7 +12,7 @@
   function fit() {
     var w = window.innerWidth, h = window.innerHeight;
     if (body.classList.contains('overview')) { document.documentElement.style.setProperty('--scale', '1'); return; }
-    var s = Math.min(w / 1280, h / 720) * 0.98;
+    var s = Math.min(w / 1920, h / 1080) * 0.98;
     document.documentElement.style.setProperty('--scale', String(s));
   }
 

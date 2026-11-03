@@ -40,60 +40,44 @@
   </div>
 </section>
 
-<section class="slide" data-notes="Research question in one line. Then the contribution: not a new algorithm, not an evaluated intervention. A reproducible link from indicator to planning question to the evidence still missing.">
-  <h2>Question and contribution</h2>
+<section class="slide qpos" data-notes="Research question in one line, then the contribution: not a new algorithm, not an evaluated intervention, but a reproducible link from indicator to planning question to the evidence still missing. Literature anchors: WHO for policy context, Geurs and van Wee for accessibility families, Yan et al. for pollution-aware routing which we do not replicate, Venter et al. for why vegetation stays separate from air, Munzner for the interface as instrument.">
+  <h2>Question, contribution and position</h2>
   <p class="lead question">How can modelled access, green context and historical environmental conditions be translated into transparent planning questions for sport and recreation, without treating them as verified participation or health outcomes?</p>
   <div class="cols three">
     <div class="card"><h3>Proximity</h3><p>Straight-line vs. network distance, per activity category</p></div>
-    <div class="card"><h3>Green scale</h3><p>Sensitivity of travel-time / vegetation trade-offs to the buffer radius</p></div>
+    <div class="card"><h3>Green scale</h3><p>Sensitivity of travel-time / vegetation trade-offs to buffer radius</p></div>
     <div class="card"><h3>Timing</h3><p>Pollutant-specific comparison of historical departure times</p></div>
   </div>
-  <p class="note">Contribution: an applied, reproducible workflow that connects each indicator to a decision and to the evidence required before acting on it. No new routing algorithm, no evaluated intervention.</p>
-</section>
-
-<section class="slide" data-notes="Literature positioning, briefly. Four anchors: WHO for policy context, Geurs and van Wee for accessibility families, Yan et al. for pollution-aware routing which we do NOT replicate, Venter et al. for why vegetation is kept separate from air. Munzner: the interface is an instrument, not a validated intervention.">
-  <h2>Where it sits in the literature</h2>
   <table class="lit">
-    <tr><th>Strand</th><th>What we take from it</th><th>What we do not claim</th></tr>
-    <tr><td>Health-oriented planning (WHO 2016, 2018, 2020)</td><td>Motivation to examine activity-supporting environments</td><td>A conversion from minutes or vegetation % to local health effect</td></tr>
-    <tr><td>Accessibility measures (Geurs &amp; van Wee 2004)</td><td>Nearest, cumulative and decay-weighted families as complementary descriptions</td><td>Empirically calibrated local preferences</td></tr>
-    <tr><td>Pollution-aware routing (Yan et al. 2024)</td><td>Environmental trade-offs in travel</td><td>Street-level routing from one regional time series</td></tr>
-    <tr><td>Green space and air (Venter et al. 2024)</td><td>Vegetation kept separate from air quality</td><td>Vegetation % as a pollution reduction factor</td></tr>
-    <tr><td>Visualization design (Munzner 2009)</td><td>Interface as analytical instrument</td><td>That the interface improves decisions</td></tr>
+    <tr><th>Strand</th><th>Taken from it</th><th>Not claimed</th></tr>
+    <tr><td>Health-oriented planning (WHO 2016–2020)</td><td>Motivation to examine activity-supporting environments</td><td>Conversion from minutes or vegetation % to health effect</td></tr>
+    <tr><td>Accessibility measures (Geurs &amp; van Wee 2004)</td><td>Nearest, cumulative, decay-weighted as complementary</td><td>Calibrated local preferences</td></tr>
+    <tr><td>Pollution-aware routing (Yan 2024) · Green &amp; air (Venter 2024) · Vis design (Munzner 2009)</td><td>Trade-offs in travel; vegetation separate from air; interface as instrument</td><td>Street-level routing; vegetation as pollution reducer; proof the interface improves decisions</td></tr>
   </table>
+  <p class="note">Contribution: an applied, reproducible workflow connecting each indicator to a decision and to the evidence required before acting on it.</p>
 </section>
-
-<section class="slide" data-notes="Study design. The unit is an origin–destination pair, not a person. 20 synthetic grid origins, 12 OSM candidates, 240 pairs, 228 routable. Technical window, not an administrative boundary.">
-  <h2>Study design: Ilidža–Stup pilot</h2>
+<section class="slide design" data-notes="Study design and data. The unit is an origin–destination pair, not a person: 20 synthetic grid origins, 12 OSM candidates, 240 pairs, 228 routable. Technical window, not an administrative boundary. Emphasise mixed years: 2026 network, 2021 land cover and air. A declared scenario, not a simultaneously observed city. No station data substituted.">
+  <h2>Study design and data: Ilidža–Stup pilot</h2>
   <div class="cols">
     <div>
       <ul class="stats">
-        <li><b>20</b> synthetic origins (4 × 5 grid cell centres)</li>
+        <li><b>20</b> synthetic origins (4 × 5 grid cell centres) · <b>19</b> routable</li>
         <li><b>12</b> mapped candidates: 8 playgrounds, 3 sports centres, 1 pitch</li>
         <li><b>240</b> origin–destination pairs, <b>228</b> routable</li>
-        <li><b>19 / 20</b> routable origins; one origin has no modelled route</li>
-        <li>Walking speed 1.2 m/s → t = L / 72 min</li>
-        <li>350 m snapping limit; OSM oneway treated as directed</li>
+        <li>Walking 1.2 m/s · 350 m snapping · OSM oneway treated as directed</li>
       </ul>
-      <p class="note">Technical window 18.300–18.352° E, 43.828–43.850° N. Not an administrative boundary, not an exhaustive inventory. Two close playground pairs (55 m, 40.7 m) kept separate in the baseline.</p>
+      <table>
+        <tr><th>Input</th><th>Support</th><th>Limitation</th></tr>
+        <tr><td>OpenStreetMap network + destinations</td><td>2026 snapshot</td><td>Entrances, access not field-verified</td></tr>
+        <tr><td>ESA WorldCover v200</td><td>2021, 10 m</td><td>No shade or public-access information</td></tr>
+        <tr><td>CAMS + ERA5 via Open-Meteo</td><td>8,760 h, 2021, one cell</td><td>Cannot distinguish neighbouring routes</td></tr>
+        <tr><td>Official Ilidža station pages</td><td>Documentary</td><td>No matched authorised hourly archive</td></tr>
+      </table>
     </div>
-    <figure><img src="figures/figure1-study-geometry.png" alt="Study geometry: synthetic origins, candidate destinations and technical window"><figcaption>Study geometry, baseline graph.</figcaption></figure>
+    <figure><img src="figures/figure1-study-geometry.png" alt="Study geometry: synthetic origins, candidate destinations and technical window"><figcaption>Study geometry, baseline graph. Technical window 18.300–18.352° E, 43.828–43.850° N.</figcaption></figure>
   </div>
+  <p class="note">A 2026 network evaluated against 2021 environmental histories is a declared scenario, not a reconstruction of one observed year.</p>
 </section>
-
-<section class="slide" data-notes="Data sources. Emphasise mixed years: 2026 network, 2021 land cover and air. This is a declared scenario, not a simultaneously observed city. No station data substituted.">
-  <h2>Data: secondary sources, mixed years by design</h2>
-  <table>
-    <tr><th>Input</th><th>Support</th><th>Role</th><th>Principal limitation</th></tr>
-    <tr><td>OpenStreetMap network + destinations</td><td>Fixed 2026 snapshot</td><td>Walking distance, categories</td><td>Entrances, access, traversability not field-verified</td></tr>
-    <tr><td>ESA WorldCover v200</td><td>2021, 10 m cells</td><td>Vegetation &amp; water in 100 / 300 / 500 m buffers</td><td>Does not establish shade or public access</td></tr>
-    <tr><td>CAMS via Open-Meteo</td><td>8,760 h, 2021, one regional cell</td><td>PM2.5, PM10, NO2, O3 series</td><td>Cannot distinguish neighbouring routes</td></tr>
-    <tr><td>ERA5 via Open-Meteo</td><td>8,760 h, 2021</td><td>Meteorological context</td><td>Regional model output, not microclimate</td></tr>
-    <tr><td>Official Ilidža station pages</td><td>Documentary</td><td>Audit of available evidence</td><td>No matched authorised hourly archive</td></tr>
-  </table>
-  <p class="note">The 2026 network evaluated against 2021 environmental histories is a scenario, not a reconstruction of one observed year.</p>
-</section>
-
 <section class="slide" data-notes="Methods in one slide. Three accessibility measures within each activity category; Pareto on time and vegetation; concentration-time integral for outings. 1,620 parameter rows; 83,220 paired cases per pollutant and duration.">
   <h2>Method: three measures, one trade-off, one integral</h2>
   <div class="cols three">
@@ -245,28 +229,19 @@
   </div>
 </section>
 
-<section class="slide" data-notes="Conclusion. Network representation, scale of green context and outing time can all change comparisons between mapped candidates. The defensible contribution: making the link from indicator to question to missing evidence explicit, before a map result becomes a design decision.">
+<section class="slide end-conclusion" data-notes="Conclusion: network representation, scale of green context and outing time can all change comparisons between mapped candidates. The defensible contribution: making the link from indicator to question to missing evidence explicit before a map result becomes a design decision. Thank the audience and point to the live pilot: 2D/3D map, 12 departure scenarios, paper and supplement downloadable, BS / EN / TR.">
   <h2>Conclusion</h2>
   <p class="lead">Network representation, the scale of vegetation context and the time of an assumed outing can each alter comparisons among mapped recreation candidates. Directionality and unresolved candidate identity do too.</p>
   <div class="callout">
-    <p>The method organises the examination of <b>access, setting and timing</b> for sport and recreation, including the initial review of candidate settings for physical education.</p>
-    <p>It cannot establish venue suitability, participation, equitable provision or health effects.</p>
-    <p><b>Its defensible contribution:</b> making the link from an indicator to a planning question and the next necessary evidence explicit, before a map-based result is used as a design or programme decision.</p>
+    <p>The method organises the examination of <b>access, setting and timing</b> for sport and recreation, including the initial review of candidate settings for physical education. It cannot establish venue suitability, participation, equitable provision or health effects.</p>
+    <p><b>Defensible contribution:</b> making the link from an indicator to a planning question and the next necessary evidence explicit, before a map-based result becomes a design or programme decision.</p>
   </div>
+  <div class="thanks">
+    <div><p class="kicker">Thank you</p><p class="authors">Semir Poturak · Amra Tuzović · University of Travnik, Faculty of Technical Sciences</p></div>
+    <div class="links">Live pilot, paper and supplement (BS / EN / TR):<br><a href="https://3esign.github.io/sportspace-pilot/">3esign.github.io/sportspace-pilot</a></div>
+  </div>
+  <p class="note small">Data: OpenStreetMap © contributors · ESA WorldCover 2021 (modified Copernicus Sentinel data) · CAMS and ERA5 via Open-Meteo · FHMZ BiH</p>
 </section>
-
-<section class="slide title end" data-notes="Thank the audience. Point to the live pilot: 2D/3D map, layers, 12 departure scenarios, paper and supplement downloadable. BS / EN / TR.">
-  <p class="kicker">Thank you</p>
-  <h1>SportSpace</h1>
-  <p class="authors">Semir Poturak · Amra Tuzović<br>University of Travnik, Faculty of Technical Sciences</p>
-  <p class="links">
-    Live pilot (2D/3D, BS / EN / TR, 12 outing scenarios):<br>
-    <a href="https://3esign.github.io/sportspace-pilot/">3esign.github.io/sportspace-pilot</a><br>
-    Paper, analytical supplement and data licences are downloadable from the Research panel.
-  </p>
-  <p class="affil small">Data: OpenStreetMap © contributors · ESA WorldCover 2021 (modified Copernicus Sentinel data) · CAMS and ERA5 via Open-Meteo · FHMZ BiH</p>
-</section>
-
 </main>
 
 <div id="hud" aria-hidden="true">
