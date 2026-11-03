@@ -21,6 +21,6 @@ There are 20 synthetic origins, 12 routed destination candidates and 228 compute
 
 The paper and analytical supplement are in English. Website 0.30 presents the saved scientific outputs; the final v0.29 paper package remains unchanged. The public repository may still show an earlier release until deployment.
 
-[Final paper](research/SportSpace_ICSIE_2026_FINAL.docx) · [Analytical supplement](research/SportSpace_ICSIE_2026_submission.zip) · [Displayed data](research/results.json) · [Spatial/environmental methodology](ENVIRONMENT-METHODS.md) · [Visualization methodology](VISUALIZATION-METHODS.md) · [Data licences](DATA-LICENSE.md) · [Software licence](LICENSE)
+[Conference slides (ICSIE 2026)](slides/) · [Final paper](research/SportSpace_ICSIE_2026_FINAL.docx) · [Analytical supplement](research/SportSpace_ICSIE_2026_submission.zip) · [Displayed data](research/results.json) · [Spatial/environmental methodology](ENVIRONMENT-METHODS.md) · [Visualization methodology](VISUALIZATION-METHODS.md) · [Data licences](DATA-LICENSE.md) · [Software licence](LICENSE)
 
 No build step, npm installation or network API is required to use this static site. Open `index.html` or serve this directory locally. Research output regeneration is described in the public package's REPRODUCE.md; the full scientific rebuild is documented inside the analytical supplement.

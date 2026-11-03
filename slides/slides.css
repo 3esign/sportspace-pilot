@@ -1,0 +1,108 @@
+:root {
+  --bg: #f7f8f5;
+  --paper: #ffffff;
+  --ink: #1d2a24;
+  --muted: #5b6b63;
+  --line: #d9e0db;
+  --accent: #2f6b3f;
+  --accent-soft: #e4efe6;
+  --accent-deep: #1f4a2c;
+  --water: #9ec9d9;
+  --slide-w: 1280px;
+  --slide-h: 720px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif; font-size: 20px; line-height: 1.35; }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+
+#deck { position: fixed; inset: 0; overflow: hidden; }
+.slide {
+  position: absolute; left: 50%; top: 50%;
+  width: var(--slide-w); height: var(--slide-h);
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  transform-origin: center;
+  background: var(--paper); padding: 48px 64px 56px;
+  display: none; flex-direction: column; gap: 18px;
+  box-shadow: 0 10px 40px rgba(20, 40, 30, .12);
+  overflow: hidden;
+}
+.slide.active { display: flex; }
+.slide::after {
+  content: "SportSpace · Poturak & Tuzović · ICSIE 2026";
+  position: absolute; left: 64px; bottom: 18px; font-size: 13px; color: var(--muted); letter-spacing: .02em;
+}
+.slide.title::after { content: ""; }
+
+h1, h2, h3 { margin: 0; font-weight: 650; letter-spacing: -.01em; color: var(--accent-deep); }
+h1 { font-size: 46px; line-height: 1.12; }
+h2 { font-size: 34px; line-height: 1.15; padding-bottom: 10px; border-bottom: 2px solid var(--accent-soft); }
+h3 { font-size: 21px; margin-bottom: 6px; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.2em; }
+li { margin: 6px 0; }
+.lead { font-size: 24px; line-height: 1.4; }
+.question { font-style: italic; color: var(--accent-deep); border-left: 5px solid var(--accent); padding-left: 18px; }
+.note { font-size: 16px; color: var(--muted); margin-top: auto; border-top: 1px solid var(--line); padding-top: 10px; }
+.kicker { font-size: 17px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent); }
+
+.title { justify-content: center; background: linear-gradient(135deg, #ffffff 0%, var(--accent-soft) 100%); }
+.title h1 { font-size: 50px; max-width: 1000px; }
+.title .authors { font-size: 26px; margin-top: 14px; }
+.title .affil { font-size: 20px; color: var(--muted); }
+.title .links { font-size: 19px; margin-top: 22px; }
+.title .small { font-size: 14px; margin-top: 30px; }
+.end h1 { font-size: 64px; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; flex: 1; min-height: 0; }
+.cols.three { grid-template-columns: 1fr 1fr 1fr; gap: 24px; flex: 1; align-content: center; }
+.card { background: var(--accent-soft); border-radius: 10px; padding: 24px 24px; font-size: 21px; height: 100%; }
+.card p { margin: 10px 0; }
+.callout { background: var(--accent-soft); border-left: 6px solid var(--accent); border-radius: 0 10px 10px 0; padding: 20px 24px; font-size: 21px; }
+.callout p { margin: 10px 0; }
+.callout ol li { margin: 10px 0; font-size: 22px; }
+
+.stats { list-style: none; padding: 0; font-size: 21px; }
+.stats li { padding: 6px 0 6px 16px; border-left: 3px solid var(--accent-soft); margin: 4px 0; }
+.stats b { color: var(--accent-deep); font-size: 1.15em; }
+.stats.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 17px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--accent-soft); color: var(--accent-deep); font-weight: 650; }
+td b { color: var(--accent-deep); }
+table.lit td, table.lit th { font-size: 18px; padding: 11px 12px; }
+table.compact td, table.compact th { font-size: 18px; padding: 11px 12px; }
+.cols > table { font-size: 19px; }
+.cols > table th, .cols > table td { padding: 10px 12px; }
+
+figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 0; }
+figure img { max-width: 100%; max-height: 430px; object-fit: contain; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+figcaption { font-size: 14px; color: var(--muted); text-align: center; }
+.figure-slide figure.big { flex: 1; min-height: 0; justify-content: center; }
+.figure-slide figure.big img { max-height: 520px; }
+
+#hud { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; pointer-events: none; }
+#progress { height: 4px; background: rgba(0,0,0,.08); }
+#bar { height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+#counter { position: fixed; right: 14px; bottom: 10px; font-size: 13px; color: var(--muted); }
+
+#notes { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #1d2a24; color: #e8efe9;
+  padding: 14px 24px 18px; font-size: 17px; max-height: 32vh; overflow: auto; border-top: 3px solid var(--accent); }
+#notes h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #9fc5a9; }
+#help { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 7; background: #fff;
+  border: 1px solid var(--line); border-radius: 10px; padding: 20px 26px; max-width: 640px; font-size: 17px; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+
+body.overview #deck { overflow: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px; align-content: start; }
+body.overview .slide { display: flex; position: relative; left: auto; top: auto; transform: scale(.31); transform-origin: top left;
+  width: var(--slide-w); height: var(--slide-h); margin-bottom: calc(var(--slide-h) * -.69); margin-right: calc(var(--slide-w) * -.69); cursor: pointer; }
+body.overview .slide.active { outline: 6px solid var(--accent); }
+
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  html, body { background: #fff; }
+  #deck { position: static; overflow: visible; }
+  .slide { display: flex; position: relative; left: auto; top: auto; transform: none; box-shadow: none;
+    page-break-after: always; break-after: page; margin: 0; }
+  #hud, #notes, #help { display: none !important; }
+}

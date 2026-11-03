@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SportSpace — ICSIE 2026 presentation</title>
+<meta name="description" content="SportSpace: Spatial Evidence for Planning Active Urban Environments in Ilidža–Stup. Conference slides, ICSIE 2026.">
+<link rel="stylesheet" href="slides.css">
+</head>
+<body>
+<main id="deck" aria-label="Slides">
+
+<section class="slide title" data-notes="Greet. One sentence: this is a screening method for planning active urban environments, tested in Ilidža–Stup, with an honest account of where the results become sensitive.">
+  <p class="kicker">ICSIE 2026 · Full paper presentation</p>
+  <h1>SportSpace: Spatial Evidence for Planning Active Urban Environments in Ilidža–Stup</h1>
+  <p class="authors"><strong>Semir Poturak</strong> · Amra Tuzović</p>
+  <p class="affil">University of Travnik, Faculty of Technical Sciences</p>
+  <p class="links">Interactive pilot &amp; paper: <a href="https://3esign.github.io/sportspace-pilot/">3esign.github.io/sportspace-pilot</a></p>
+</section>
+
+<section class="slide" data-notes="Frame the problem. A sports symbol on a map is not usable access, and usable access is not a health benefit. The planner needs to know which candidates deserve a closer look and which uncertainties could change the comparison.">
+  <h2>A map symbol is not an opportunity</h2>
+  <div class="cols">
+    <div>
+      <p class="lead">Planning for an active city connects places to play and exercise with the routes and conditions through which they are used.</p>
+      <ul>
+        <li>WHO (2018, 2020): active environments are part of health-oriented urban planning</li>
+        <li>But mapped proximity alone does not establish <em>usable access</em> or <em>health benefit</em></li>
+        <li>Early-stage question: which candidates merit examination, what does reaching them cost, what surrounds them, what could change the answer?</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h3>Three distinctions organise the study</h3>
+      <ol>
+        <li>Mapped candidate ≠ usable opportunity</li>
+        <li>Modelled opportunity ≠ actual participation</li>
+        <li>Health-relevant conditions ≠ demonstrated health effect</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Research question in one line. Then the contribution: not a new algorithm, not an evaluated intervention. A reproducible link from indicator to planning question to the evidence still missing.">
+  <h2>Question and contribution</h2>
+  <p class="lead question">How can modelled access, green context and historical environmental conditions be translated into transparent planning questions for sport and recreation, without treating them as verified participation or health outcomes?</p>
+  <div class="cols three">
+    <div class="card"><h3>Proximity</h3><p>Straight-line vs. network distance, per activity category</p></div>
+    <div class="card"><h3>Green scale</h3><p>Sensitivity of travel-time / vegetation trade-offs to the buffer radius</p></div>
+    <div class="card"><h3>Timing</h3><p>Pollutant-specific comparison of historical departure times</p></div>
+  </div>
+  <p class="note">Contribution: an applied, reproducible workflow that connects each indicator to a decision and to the evidence required before acting on it. No new routing algorithm, no evaluated intervention.</p>
+</section>
+
+<section class="slide" data-notes="Literature positioning, briefly. Four anchors: WHO for policy context, Geurs and van Wee for accessibility families, Yan et al. for pollution-aware routing which we do NOT replicate, Venter et al. for why vegetation is kept separate from air. Munzner: the interface is an instrument, not a validated intervention.">
+  <h2>Where it sits in the literature</h2>
+  <table class="lit">
+    <tr><th>Strand</th><th>What we take from it</th><th>What we do not claim</th></tr>
+    <tr><td>Health-oriented planning (WHO 2016, 2018, 2020)</td><td>Motivation to examine activity-supporting environments</td><td>A conversion from minutes or vegetation % to local health effect</td></tr>
+    <tr><td>Accessibility measures (Geurs &amp; van Wee 2004)</td><td>Nearest, cumulative and decay-weighted families as complementary descriptions</td><td>Empirically calibrated local preferences</td></tr>
+    <tr><td>Pollution-aware routing (Yan et al. 2024)</td><td>Environmental trade-offs in travel</td><td>Street-level routing from one regional time series</td></tr>
+    <tr><td>Green space and air (Venter et al. 2024)</td><td>Vegetation kept separate from air quality</td><td>Vegetation % as a pollution reduction factor</td></tr>
+    <tr><td>Visualization design (Munzner 2009)</td><td>Interface as analytical instrument</td><td>That the interface improves decisions</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-notes="Study design. The unit is an origin–destination pair, not a person. 20 synthetic grid origins, 12 OSM candidates, 240 pairs, 228 routable. Technical window, not an administrative boundary.">
+  <h2>Study design: Ilidža–Stup pilot</h2>
+  <div class="cols">
+    <div>
+      <ul class="stats">
+        <li><b>20</b> synthetic origins (4 × 5 grid cell centres)</li>
+        <li><b>12</b> mapped candidates: 8 playgrounds, 3 sports centres, 1 pitch</li>
+        <li><b>240</b> origin–destination pairs, <b>228</b> routable</li>
+        <li><b>19 / 20</b> routable origins; one origin has no modelled route</li>
+        <li>Walking speed 1.2 m/s → t = L / 72 min</li>
+        <li>350 m snapping limit; OSM oneway treated as directed</li>
+      </ul>
+      <p class="note">Technical window 18.300–18.352° E, 43.828–43.850° N. Not an administrative boundary, not an exhaustive inventory. Two close playground pairs (55 m, 40.7 m) kept separate in the baseline.</p>
+    </div>
+    <figure><img src="figures/figure1-study-geometry.png" alt="Study geometry: synthetic origins, candidate destinations and technical window"><figcaption>Study geometry, baseline graph.</figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" data-notes="Data sources. Emphasise mixed years: 2026 network, 2021 land cover and air. This is a declared scenario, not a simultaneously observed city. No station data substituted.">
+  <h2>Data: secondary sources, mixed years by design</h2>
+  <table>
+    <tr><th>Input</th><th>Support</th><th>Role</th><th>Principal limitation</th></tr>
+    <tr><td>OpenStreetMap network + destinations</td><td>Fixed 2026 snapshot</td><td>Walking distance, categories</td><td>Entrances, access, traversability not field-verified</td></tr>
+    <tr><td>ESA WorldCover v200</td><td>2021, 10 m cells</td><td>Vegetation &amp; water in 100 / 300 / 500 m buffers</td><td>Does not establish shade or public access</td></tr>
+    <tr><td>CAMS via Open-Meteo</td><td>8,760 h, 2021, one regional cell</td><td>PM2.5, PM10, NO2, O3 series</td><td>Cannot distinguish neighbouring routes</td></tr>
+    <tr><td>ERA5 via Open-Meteo</td><td>8,760 h, 2021</td><td>Meteorological context</td><td>Regional model output, not microclimate</td></tr>
+    <tr><td>Official Ilidža station pages</td><td>Documentary</td><td>Audit of available evidence</td><td>No matched authorised hourly archive</td></tr>
+  </table>
+  <p class="note">The 2026 network evaluated against 2021 environmental histories is a scenario, not a reconstruction of one observed year.</p>
+</section>
+
+<section class="slide" data-notes="Methods in one slide. Three accessibility measures within each activity category; Pareto on time and vegetation; concentration-time integral for outings. 1,620 parameter rows; 83,220 paired cases per pollutant and duration.">
+  <h2>Method: three measures, one trade-off, one integral</h2>
+  <div class="cols three">
+    <div class="card">
+      <h3>Accessibility</h3>
+      <p>Nearest destination: straight-line vs. network</p>
+      <p>Cumulative: N<sub>i</sub>(τ) = Σ<sub>j</sub> 1[t<sub>ij</sub> ≤ τ], τ = 10 / 20 / 30 min</p>
+      <p>Potential: P<sub>i</sub>(h) = Σ<sub>j</sub> 2<sup>−t<sub>ij</sub>/h</sup>, h = 10 / 15 / 30 min</p>
+    </div>
+    <div class="card">
+      <h3>Green trade-off</h3>
+      <p>V<sub>j</sub>(r): vegetation % at r = 100 / 300 / 500 m</p>
+      <p>Joint count with threshold g = 10 / 20 / 30 %</p>
+      <p>Pareto set: minimise t<sub>ij</sub>, maximise V<sub>j</sub>(r)</p>
+      <p><b>1,620</b> parameter rows; 57 radius comparisons per activity</p>
+    </div>
+    <div class="card">
+      <h3>Outing scenarios</h3>
+      <p>Departures 08:00 / 14:00 / 18:00, every 2021 date; stay 30 min (15, 60)</p>
+      <p>E<sub>p</sub> = ∫<sub>0</sub><sup>T</sup> C<sub>p</sub>(s+u) du, T = 2t + d</p>
+      <p><b>83,220</b> paired cases per pollutant; not inhaled dose</p>
+    </div>
+  </div>
+  <p class="note">Equal destination weights. Thresholds are analytical scenarios, not health or planning standards.</p>
+</section>
+
+<section class="slide figure-slide" data-notes="This is the baseline screening scenario in space. Numbers at origins count qualifying playground candidates within 20 minutes with at least 20% vegetation in 300 m. Western origins: zero. One origin: no route. Note the overlapping triangles: the unresolved close pairs.">
+  <h2>The screening scenario in space</h2>
+  <figure class="big"><img src="figures/figure5-planning-map.png" alt="Spatial screening map: qualifying playground candidates per origin, vegetation and water classes"><figcaption>Playground candidates within 20 assumed walking minutes with ≥20 % vegetation in 300 m. Counts are candidate records at synthetic origins, not catchments or population coverage.</figcaption></figure>
+</section>
+
+<section class="slide" data-notes="Finding 1. Network distance changes the nearest candidate: 4 of 19 origins for playgrounds, 3 of 19 for sports centres, up to almost 10 minutes extra. The single pitch cannot change because there is no alternative.">
+  <h2>Finding 1 · Network proximity changes the nearest destination</h2>
+  <div class="cols">
+    <table>
+      <tr><th>Activity</th><th>Dest.</th><th>Changed nearest</th><th>Max extra time</th></tr>
+      <tr><td>Playground</td><td>8</td><td><b>4 / 19</b></td><td>5.02 min</td></tr>
+      <tr><td>Sports centre</td><td>3</td><td><b>3 / 19</b></td><td>9.98 min</td></tr>
+      <tr><td>Sports pitch</td><td>1</td><td>0 / 19</td><td>0.00 min</td></tr>
+      <tr><td>All, descriptive</td><td>12</td><td>5 / 19</td><td>6.67 min</td></tr>
+    </table>
+    <figure><img src="figures/figure2-network-choice.png" alt="Additional walking time from choosing the straight-line nearest destination"><figcaption>Extra modelled walking time when the straight-line nearest is chosen instead of the network nearest.</figcaption></figure>
+  </div>
+  <p class="note">Conditional on baseline directionality, snapping and 1.2 m/s. Describes this synthetic origin set, not the travel burdens of residents.</p>
+</section>
+
+<section class="slide" data-notes="Finding 2. Changing the vegetation buffer from 100 to 500 m changes the playground Pareto set in 20 of 57 comparisons. No change for sports centres or the pitch. Rounding sensitivity: 3/513 at 0.001 pp, 17/513 at 1 pp. Small numerical differences can flip individual memberships.">
+  <h2>Finding 2 · The scale of green context changes the compromise set</h2>
+  <div class="cols">
+    <div>
+      <ul class="stats">
+        <li><b>20 / 57</b> playground Pareto sets change between 100 m and 500 m buffers</li>
+        <li><b>0 / 57</b> for sports centres and for the single pitch</li>
+        <li>1,539 of 1,620 parameter rows have a routable origin; 81 remain unknown</li>
+        <li>Rounding vegetation to 0.001 pp: 3 / 513 sets change; to 1 pp: 17 / 513 (result becomes 19 / 57)</li>
+      </ul>
+      <p class="note">The broad finding persists; individual front membership can depend on small numerical differences. Not every difference is environmentally meaningful.</p>
+    </div>
+    <figure><img src="figures/figure3-radius-sensitivity.png" alt="Change in playground Pareto set between 100 and 500 m vegetation buffers"><figcaption>Pareto-set change per origin and time threshold.</figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" data-notes="Finding 3. Departure time comparisons differ between pollutants. PM and NO2 favour 14:00 in the 2021 record; ozone the opposite. No universally preferable departure. Retrospective: not a recommendation for today.">
+  <h2>Finding 3 · Departure-time comparisons differ between pollutants</h2>
+  <div class="cols">
+    <table>
+      <tr><th>Pollutant</th><th>Median E<sub>14:00</sub> − E<sub>08:00</sub> (µg·min/m³)</th><th>Strict min at 14:00</th></tr>
+      <tr><td>PM2.5</td><td>−401.35</td><td>72.9 %</td></tr>
+      <tr><td>PM10</td><td>−224.75</td><td>44.8 %</td></tr>
+      <tr><td>NO2</td><td>−439.57</td><td>78.4 %</td></tr>
+      <tr><td>O3</td><td><b>+2,389.75</b></td><td>0.6 %</td></tr>
+    </table>
+    <figure><img src="figures/figure4-departure-differences.png" alt="Paired concentration-time differences between departure times per pollutant"><figcaption>Medians and 10th–90th percentile ranges of 83,220 date–route scenarios per pollutant, 30-minute stay.</figcaption></figure>
+  </div>
+  <p class="note">All cases share one regional 2021 series. Retrospective; does not recommend 14:00 today, nor a cleaner street.</p>
+</section>
+
+<section class="slide" data-notes="Finding 4: the representation audit, added after review. Removing directionality shortens 125 of 228 routes by up to 11.45 min. Grouping the two unresolved pairs changes counts in 15 of 57 cases. Connectors are a median 2% of distance. All baseline distances reproduced independently.">
+  <h2>Finding 4 · The representation itself is part of the result</h2>
+  <div class="cols three">
+    <div class="card"><h3>Directionality</h3><p>Removing graph direction rules shortens <b>125 / 228</b> routed pairs, max <b>11.45 min</b>. Sports-centre disagreement drops 3/19 → 2/19; playground set unchanged.</p></div>
+    <div class="card"><h3>Candidate identity</h3><p>Grouping the two unresolved close playground pairs changes opportunity counts in <b>15 / 57</b> origin–threshold cases (by at most two).</p></div>
+    <div class="card"><h3>Connectors</h3><p>Origin + destination connectors: median <b>2.13 %</b>, max <b>13.94 %</b> of baseline distance. All 20 origins satisfy 350 m snapping; 17 pass at 50 m, 19 at 100 m.</p></div>
+  </div>
+  <p class="note">Independent rerouting reproduces all baseline distances. A record count should not be presented as an inventory of independent venues.</p>
+</section>
+
+<section class="slide" data-notes="Controls and reproducibility. 4,380 nested-interval checks, no violations. Ten outputs regenerated twice offline, byte-identical by SHA-256. Node.js standard library, no npm dependencies. Station audit: official pages exist, no authorised hourly archive matched.">
+  <h2>Controls and reproducibility</h2>
+  <ul class="stats two-col">
+    <li><b>4,380</b> nested-interval monotonicity checks: no violations</li>
+    <li><b>80</b> origin–activity records and <b>1,620</b> rows verified; independent PM2.5 integration</li>
+    <li><b>10</b> core outputs regenerated twice offline, SHA-256 identical</li>
+    <li>Node.js standard library only, no npm dependencies</li>
+    <li>Station audit: official Ilidža displays exist, no matched authorised archive → no validation claim</li>
+    <li>Versioned analytical supplement with scripts, outputs, figures and manifests</li>
+  </ul>
+  <p class="note">Computational reproducibility, interpretive plausibility and real-world validity are three separate things. Tests and hashes establish only the first.</p>
+</section>
+
+<section class="slide" data-notes="From indicators to planning questions. This is the practical core. Each indicator maps to a concrete question, a permissible preliminary use, and what it does not establish. Example: the 9.98 minute sports-centre detour. Inspect the representation before proposing a physical connection.">
+  <h2>From indicator to planning question</h2>
+  <table class="compact">
+    <tr><th>Indicator</th><th>Concrete question</th><th>Permissible preliminary use</th><th>Does not establish</th></tr>
+    <tr><td>Network vs. straight-line; directional &amp; connector sensitivity</td><td>Is the detour due to the city or the representation?</td><td>Review connections, crossings, entrances in records</td><td>A missing crossing or a justified construction project</td></tr>
+    <tr><td>Opportunity counts; unresolved grouping</td><td>How many distinct candidates remain?</td><td>Shortlist for documentary review (incl. physical education)</td><td>Capacity, suitability, permission, demand</td></tr>
+    <tr><td>Vegetation share; radius-dependent Pareto</td><td>Immediate setting or wider neighbourhood?</td><td>Examine spatial context of alternatives</td><td>Shade, usable green area, design quality</td></tr>
+    <tr><td>Pollutant-specific integrals; meteorology</td><td>Does the timing comparison change between pollutants?</td><td>Argue for temporal, pollutant-specific context</td><td>A safe time today or a cleaner route</td></tr>
+    <tr><td>Access documentation gaps</td><td>Which missing fact could invalidate the shortlist?</td><td>Assign a focused verification task</td><td>Access merely because an object is mapped</td></tr>
+  </table>
+  <p class="note">Example: the 9.98-minute sports-centre detour first suggests inspecting a missing link. The directionality audit shows the comparison changes with graph assumptions, so the first action is to inspect the representation, not to propose a physical connection.</p>
+</section>
+
+<section class="slide" data-notes="Relevance to sport, PE and health. Planning: distribution and connection. Urban design: route and place quality. PE practice: can this activity be organised here for this group. Health is upstream and conditional. Opportunity is not participation.">
+  <h2>Sport, physical education and health</h2>
+  <div class="cols three">
+    <div class="card"><h3>Urban planning</h3><p>Distribution and connection of potential activity settings</p></div>
+    <div class="card"><h3>Urban design</h3><p>Quality and continuity of route and place</p></div>
+    <div class="card"><h3>Sport &amp; PE practice</h3><p>Can a specific activity be organised here for a specific group?</p></div>
+  </div>
+  <p class="lead">SportSpace supplies preliminary spatial information to this shared problem: which candidates to check, which cost more travel in the model, which details matter before organising activity.</p>
+  <p class="note">Equipment, group size, supervision, surface, toilets, opening hours and permissions remain outside the analysed data. Health is upstream and conditional: opportunity ≠ participation ≠ benefit. The model cannot balance exercise benefit against pollution risk.</p>
+</section>
+
+<section class="slide" data-notes="Limits, stated plainly. Synthetic origins do not represent population. Mixed years. Regional air cannot distinguish streets. Pedestrian semantics not field-verified. Future work stays within the existing-data boundary.">
+  <h2>Limits and what comes next</h2>
+  <div class="cols">
+    <div>
+      <h3>Limits</h3>
+      <ul>
+        <li>Synthetic origins: no population, schools, deprivation or demand</li>
+        <li>2026 network vs. 2021 environment: a mixed-year scenario</li>
+        <li>Regional air and meteorology cannot differentiate nearby paths</li>
+        <li>Pedestrian semantics, topology and connectors not field-verified</li>
+        <li>Candidate identities and access incompletely verified</li>
+        <li>No participants, activity minutes or health outcomes observed</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Next, within the existing-data boundary</h3>
+      <ul>
+        <li>Check pedestrian semantics and graph topology against source records</li>
+        <li>Resolve close candidate identities; obtain documented venue properties</li>
+        <li>Match authorised station archives if available</li>
+        <li>Independently designed evaluation of decision usefulness</li>
+      </ul>
+      <p class="note">No CFD, new field campaigns or clinical research required for this contribution.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Conclusion. Network representation, scale of green context and outing time can all change comparisons between mapped candidates. The defensible contribution: making the link from indicator to question to missing evidence explicit, before a map result becomes a design decision.">
+  <h2>Conclusion</h2>
+  <p class="lead">Network representation, the scale of vegetation context and the time of an assumed outing can each alter comparisons among mapped recreation candidates. Directionality and unresolved candidate identity do too.</p>
+  <div class="callout">
+    <p>The method organises the examination of <b>access, setting and timing</b> for sport and recreation, including the initial review of candidate settings for physical education.</p>
+    <p>It cannot establish venue suitability, participation, equitable provision or health effects.</p>
+    <p><b>Its defensible contribution:</b> making the link from an indicator to a planning question and the next necessary evidence explicit, before a map-based result is used as a design or programme decision.</p>
+  </div>
+</section>
+
+<section class="slide title end" data-notes="Thank the audience. Point to the live pilot: 2D/3D map, layers, 12 departure scenarios, paper and supplement downloadable. BS / EN / TR.">
+  <p class="kicker">Thank you</p>
+  <h1>SportSpace</h1>
+  <p class="authors">Semir Poturak · Amra Tuzović<br>University of Travnik, Faculty of Technical Sciences</p>
+  <p class="links">
+    Live pilot (2D/3D, BS / EN / TR, 12 outing scenarios):<br>
+    <a href="https://3esign.github.io/sportspace-pilot/">3esign.github.io/sportspace-pilot</a><br>
+    Paper, analytical supplement and data licences are downloadable from the Research panel.
+  </p>
+  <p class="affil small">Data: OpenStreetMap © contributors · ESA WorldCover 2021 (modified Copernicus Sentinel data) · CAMS and ERA5 via Open-Meteo · FHMZ BiH</p>
+</section>
+
+</main>
+
+<div id="hud" aria-hidden="true">
+  <div id="progress"><div id="bar"></div></div>
+  <div id="counter"></div>
+</div>
+<aside id="notes" hidden><h4>Speaker notes</h4><p id="notes-text"></p></aside>
+<div id="help" hidden>
+  <p><b>Keys:</b> → / Space / PgDn next · ← / PgUp previous · Home / End · <b>F</b> fullscreen · <b>N</b> speaker notes · <b>O</b> overview · <b>?</b> this help · Esc close. Swipe on touch. Print to PDF with Ctrl+P.</p>
+</div>
+<script src="slides.js"></script>
+</body>
+</html>
